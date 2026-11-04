@@ -56,10 +56,17 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
+          # A real phone size; the default 320x640 screen squeezes the deck under the tab bar.
+          profile: pixel_6
+          cores: 4
+          ram-size: 4096M
           script: |
             adb install android/app/build/outputs/apk/release/app-release.apk
-            adb logcat -c
-            maestro test e2e/flows --format junit --output e2e-report.xml || (adb logcat -d -s ReactNativeJS:V ReactNative:V AndroidRuntime:E | tail -200; exit 1)
+            maestro test e2e/flows --format junit --output e2e-report.xml
+
+      - name: Show Maestro's log for failed flows
+        if: failure()
+        run: grep -hE "FAILED|Assertion|Swipe|swipe|Tap|tap" ~/.maestro/tests/*/maestro.log | tail -150 || true
 
       - uses: actions/upload-artifact@v4
         if: always()
