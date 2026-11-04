@@ -16,7 +16,7 @@ env:
   # Keep the undo toast up long enough for a slow emulator to tap it.
   EXPO_PUBLIC_UNDO_MS: '20000'
   # Bump to throw away the cached APK, e.g. after changing how it is built.
-  APK_CACHE_VERSION: '1'
+  APK_CACHE_VERSION: '2'
 
 jobs:
   build:
@@ -129,6 +129,8 @@ jobs:
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
 
       # A saved emulator snapshot boots in seconds instead of a minute-long cold boot.
+      # aosp_atd is Google's slimmed-down image for automated tests: no Play services or
+      # preinstalled apps keeping the CPU busy, so the app starts faster.
       - name: Restore the emulator snapshot
         id: avd
         uses: actions/cache@v4
@@ -136,7 +138,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-34-google_apis-x86_64-2cores-3072M
+          key: avd-34-aosp_atd-x86_64-2cores-3072M-settled
 
       - name: Create the emulator snapshot
         if: steps.avd.outputs.cache-hit != 'true'
@@ -144,20 +146,22 @@ jobs:
         with:
           api-level: 34
           arch: x86_64
-          target: google_apis
+          target: aosp_atd
           cores: 2
           ram-size: 3072M
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
-          script: echo "Saved an emulator snapshot."
+          # Right after boot, Android keeps optimising system apps for a while. Let that
+          # finish before saving, so every flow starts on an idle emulator.
+          script: sleep 90 && echo "Saved an emulator snapshot."
 
       - name: Run ${{ matrix.flow }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
           arch: x86_64
-          target: google_apis
+          target: aosp_atd
           # Leave 2 of the runner's 4 cores to the host; giving the emulator all 4 made runs worse.
           cores: 2
           ram-size: 3072M
