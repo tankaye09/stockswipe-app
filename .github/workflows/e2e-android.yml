@@ -14,13 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      # The native build plus the emulator image can fill the runner's disk.
-      # Remove preinstalled toolchains this job never uses.
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
-          df -h /
-
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -57,14 +50,8 @@ jobs:
           arch: x86_64
           target: google_apis
           script: |
-            adb shell settings put global verifier_verify_adb_installs 0
-            adb shell settings put global package_verifier_enable 0
             adb install android/app/build/outputs/apk/release/app-release.apk
             maestro test e2e/flows --format junit --output e2e-report.xml
-
-      - name: Show Maestro's log for failed flows
-        if: failure()
-        run: grep -hE "FAILED|Assertion|Swipe|swipe|Tap|tap" ~/.maestro/tests/*/maestro.log | tail -150 || true
 
       - uses: actions/upload-artifact@v4
         if: always()
