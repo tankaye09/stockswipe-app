@@ -20,5 +20,6 @@ name: Paper buy shows up in the paper portfolio
 - assertVisible:
     id: 'paper-position'
 - back
-- tapOn: 'Paper'
+- tapOn:
+    id: 'tab-paper'
 - assertVisible: '1 share'

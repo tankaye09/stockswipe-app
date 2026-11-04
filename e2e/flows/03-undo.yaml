@@ -6,6 +6,7 @@ name: Undo takes a save back
     id: 'right-button'
 - tapOn:
     id: 'undo-button'
-- tapOn: 'Watchlist'
+- tapOn:
+    id: 'tab-watchlist'
 - assertVisible:
     id: 'watchlist-empty'
