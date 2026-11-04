@@ -44,10 +44,10 @@
     "lint": "eslint . --max-warnings 0",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "e2e:ios": "maestro test e2e/flows",
-    "e2e:android": "maestro test e2e/flows",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "e2e": "maestro test e2e/flows",
+    "e2e:parallel": "maestro test --shard-split 2 e2e/flows"
   },
   "private": true,
   "jest": {
