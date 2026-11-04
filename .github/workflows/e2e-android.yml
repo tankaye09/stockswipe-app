@@ -56,10 +56,6 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
-          # A real phone size; the default 320x640 screen squeezes the deck under the tab bar.
-          profile: pixel_6
-          cores: 4
-          ram-size: 4096M
           script: |
             adb shell settings put global verifier_verify_adb_installs 0
             adb shell settings put global package_verifier_enable 0
