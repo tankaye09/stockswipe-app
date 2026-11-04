@@ -1,33 +1,61 @@
 // Non-stock cards that appear in the deck: ads for free users, and the daily limit.
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, space } from '../theme';
-import { FREE_DAILY_SWIPES } from '../state/rules';
+import { loadAdMob, type AdMobSdk } from '../monetization/ads';
+import { ADS } from '../monetization/config';
 
-export function AdCard() {
+/**
+ * The ad card free users see every few swipes. Shows an AdMob ad when ads are
+ * set up, otherwise (or if no ad loads) a house card for Premium. Ads sit
+ * between stocks and never change which stocks the feed shows.
+ */
+export function AdCard({
+  onRemoveAds,
+  unitId = ADS.feedUnitId,
+  sdk = loadAdMob(unitId),
+}: {
+  onRemoveAds: () => void;
+  unitId?: string;
+  sdk?: AdMobSdk | null;
+}) {
+  const [failed, setFailed] = useState(false);
+  const showAd = sdk && unitId && !failed;
   return (
-    <View style={[styles.card, { borderColor: colors.sponsored }]}>
+    <View style={[styles.card, { borderColor: colors.sponsored }]} testID="ad-card">
       <Text style={styles.tag}>SPONSORED</Text>
-      <Text style={styles.title}>Ad slot</Text>
-      <Text style={styles.body}>
-        Free users see an ad every 10 swipes. An ad network (for example Google AdMob) plugs in here. Ads never promote
-        a specific stock.
-      </Text>
+      {showAd ? (
+        <sdk.BannerAd
+          unitId={unitId}
+          size={sdk.BannerAdSize.MEDIUM_RECTANGLE}
+          requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+          onAdFailedToLoad={() => setFailed(true)}
+        />
+      ) : (
+        <>
+          <Text style={styles.emoji}>✨</Text>
+          <Text style={styles.title}>Swipe with no ads</Text>
+          <Text style={styles.body}>Premium gives you unlimited swipes and no ads.</Text>
+        </>
+      )}
+      <Pressable style={showAd ? styles.link : styles.button} onPress={onRemoveAds} testID="ad-remove-ads">
+        <Text style={showAd ? styles.linkText : styles.buttonText}>{showAd ? 'Remove ads' : 'See Premium'}</Text>
+      </Pressable>
       <Text style={styles.hint}>Swipe either way to continue</Text>
     </View>
   );
 }
 
-export function LimitCard({ onUpgrade }: { onUpgrade: () => void }) {
+export function LimitCard({ dailySwipes, onUpgrade }: { dailySwipes: number; onUpgrade: () => void }) {
   return (
     <View style={styles.card}>
       <Text style={styles.emoji}>⏸️</Text>
-      <Text style={styles.title}>That’s your {FREE_DAILY_SWIPES} swipes for today</Text>
+      <Text style={styles.title}>That’s your {dailySwipes} swipes for today</Text>
       <Text style={styles.body}>
         Come back tomorrow for a fresh batch, or go Premium for unlimited swipes. Your watchlist and paper portfolio are
         still open.
       </Text>
-      <Pressable style={styles.button} onPress={onUpgrade}>
+      <Pressable style={styles.button} onPress={onUpgrade} testID="limit-upgrade">
         <Text style={styles.buttonText}>See Premium</Text>
       </Pressable>
     </View>
@@ -71,4 +99,6 @@ const styles = StyleSheet.create({
     paddingVertical: space(3),
   },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  link: { marginTop: space(4), padding: space(2) },
+  linkText: { color: colors.textDim, fontWeight: '600', textDecorationLine: 'underline' },
 });

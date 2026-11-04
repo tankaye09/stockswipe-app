@@ -1,0 +1,29 @@
+appId: com.stockswipe.app
+name: Subscribing to Premium from Settings (test purchases)
+---
+- runFlow: ../subflows/onboard.yaml
+- tapOn: 'Settings'
+- scrollUntilVisible:
+    element:
+      id: 'see-premium'
+    direction: DOWN
+    centerElement: true
+- assertVisible:
+    id: 'plan-status'
+- tapOn:
+    id: 'see-premium'
+- assertVisible:
+    id: 'paywall'
+- assertVisible:
+    id: 'paywall-test-mode'
+- tapOn:
+    id: 'plan-monthly'
+- tapOn:
+    id: 'paywall-subscribe'
+- scrollUntilVisible:
+    element:
+      id: 'premium-active'
+    direction: DOWN
+    centerElement: true
+- assertNotVisible:
+    id: 'see-premium'

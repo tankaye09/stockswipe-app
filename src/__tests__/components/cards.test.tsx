@@ -59,14 +59,18 @@ describe('PriceChart', () => {
 });
 
 describe('feed cards', () => {
-  it('shows the ad slot', async () => {
-    await render(<AdCard />);
+  it('shows a house card for Premium when ads are not set up', async () => {
+    const onRemoveAds = jest.fn();
+    await render(<AdCard onRemoveAds={onRemoveAds} />);
     expect(screen.getByText('SPONSORED')).toBeOnTheScreen();
+    expect(screen.getByText('Swipe with no ads')).toBeOnTheScreen();
+    await userEvent.setup().press(screen.getByText('See Premium'));
+    expect(onRemoveAds).toHaveBeenCalled();
   });
 
   it('limit card links to Premium', async () => {
     const onUpgrade = jest.fn();
-    await render(<LimitCard onUpgrade={onUpgrade} />);
+    await render(<LimitCard dailySwipes={50} onUpgrade={onUpgrade} />);
     expect(screen.getByText('That’s your 50 swipes for today')).toBeOnTheScreen();
     await userEvent.setup().press(screen.getByText('See Premium'));
     expect(onUpgrade).toHaveBeenCalled();

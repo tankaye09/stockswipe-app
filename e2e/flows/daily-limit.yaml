@@ -1,0 +1,30 @@
+appId: com.stockswipe.app
+name: Daily swipe limit after the free trial, then Premium unlocks it
+---
+# Uses the admin page (only in test builds) to set a tiny limit on this device,
+# so the flow doesn't need 50 swipes or a week of waiting.
+- runFlow: ../subflows/onboard.yaml
+- runFlow:
+    file: ../subflows/set-limits.yaml
+    env:
+      FREE_DAYS: '0'
+      DAILY_SWIPES: '2'
+      AD_EVERY: '0'
+- assertVisible:
+    id: 'swipes-left'
+    text: '2 left'
+- tapOn:
+    id: 'skip-button'
+- tapOn:
+    id: 'skip-button'
+- assertVisible: 'That’s your 2 swipes for today'
+- tapOn:
+    id: 'limit-upgrade'
+- assertVisible:
+    id: 'paywall'
+- tapOn:
+    id: 'paywall-subscribe'
+- assertVisible:
+    id: 'card-symbol'
+- assertNotVisible:
+    id: 'swipes-left'
