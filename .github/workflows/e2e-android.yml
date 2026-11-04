@@ -2,6 +2,10 @@ name: E2E (Android)
 
 on:
   pull_request:
+    paths-ignore: ['**.md']
+  # On main only the build runs, to fill the caches every pull request starts from.
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -11,6 +15,8 @@ concurrency:
 env:
   # Keep the undo toast up long enough for a slow emulator to tap it.
   EXPO_PUBLIC_UNDO_MS: '20000'
+  # Bump to throw away the cached APK, e.g. after changing how it is built.
+  APK_CACHE_VERSION: '1'
 
 jobs:
   build:
@@ -24,24 +30,68 @@ jobs:
       - name: List flows
         id: flows
         run: echo "flows=$(ls e2e/flows/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+
+      # Reuse the last APK when nothing that goes into it has changed, e.g. when only flows or docs changed.
+      - name: Restore a matching APK
+        id: apk
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/apk
+          key: apk-${{ env.APK_CACHE_VERSION }}-${{ env.EXPO_PUBLIC_UNDO_MS }}-${{ hashFiles('package-lock.json', 'app.json', 'tsconfig.json', 'src/**', 'assets/**') }}
+
       - uses: actions/setup-node@v4
+        if: steps.apk.outputs.cache-hit != 'true'
         with:
           node-version: 22
           cache: npm
       - uses: actions/setup-java@v4
+        if: steps.apk.outputs.cache-hit != 'true'
         with:
           distribution: temurin
           java-version: 17
+      # Caches Gradle's downloads and build outputs between runs.
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.apk.outputs.cache-hit != 'true'
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      # Caches compiled C++ from React Native and its native libraries, which Gradle's cache can't hold.
+      - uses: hendrikmuhs/ccache-action@v1.2
+        if: steps.apk.outputs.cache-hit != 'true'
+        with:
+          key: ccache-android
+          max-size: 2G
+          save: ${{ github.ref == 'refs/heads/main' }}
       - run: npm ci
+        if: steps.apk.outputs.cache-hit != 'true'
       - name: Generate the native Android project
-        run: npx expo prebuild --platform android --no-install
+        if: steps.apk.outputs.cache-hit != 'true'
+        run: |
+          npx expo prebuild --platform android --no-install
+          # The default 512 MB metaspace runs out near the end of the build.
+          sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g/' android/gradle.properties
       - name: Build a release APK (JS bundled in, no dev server needed)
+        if: steps.apk.outputs.cache-hit != 'true'
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
+        env:
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+          CCACHE_BASEDIR: ${{ github.workspace }}
+        # R8 minifying and PNG crunching only shrink the APK, which tests don't need, and they take minutes.
+        run: >
+          ./gradlew assembleRelease --build-cache
+          -PreactNativeArchitectures=x86_64
+          -Pandroid.enableMinifyInReleaseBuilds=false
+          -Pandroid.enablePngCrunchInReleaseBuilds=false
+      - name: Move the APK where the cache expects it
+        if: steps.apk.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/apk/"
+
       - uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: ${{ runner.temp }}/apk/app-release.apk
           retention-days: 3
 
   flow:
@@ -49,6 +99,7 @@ jobs:
     # parallel and can't affect each other.
     name: ${{ matrix.flow }}
     needs: build
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -77,6 +128,30 @@ jobs:
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
 
+      # A saved emulator snapshot boots in seconds instead of a minute-long cold boot.
+      - name: Restore the emulator snapshot
+        id: avd
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34-google_apis-x86_64-2cores-3072M
+
+      - name: Create the emulator snapshot
+        if: steps.avd.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          cores: 2
+          ram-size: 3072M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Saved an emulator snapshot."
+
       - name: Run ${{ matrix.flow }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -86,6 +161,9 @@ jobs:
           # Leave 2 of the runner's 4 cores to the host; giving the emulator all 4 made runs worse.
           cores: 2
           ram-size: 3072M
+          force-avd-creation: false
+          # Boot from the snapshot and leave it unchanged, so every flow starts from the same emulator.
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
             adb install "${{ runner.temp }}/apk/app-release.apk"
             e2e/scripts/run-flow.sh "${{ matrix.flow }}"
