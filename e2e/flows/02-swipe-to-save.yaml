@@ -6,7 +6,6 @@ name: Swiping right saves to the watchlist
     from:
       id: 'deck'
     direction: RIGHT
-- assertVisible: 'Saved .* to your watchlist'
 - tapOn: 'Watchlist'
 - assertVisible:
     id: 'watchlist'

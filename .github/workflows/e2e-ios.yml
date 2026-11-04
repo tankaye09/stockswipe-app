@@ -6,6 +6,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  # Keep the undo toast up long enough for a slow emulator to tap it.
+  EXPO_PUBLIC_UNDO_MS: '20000'
+
 jobs:
   maestro:
     name: Maestro flows on an iOS simulator
