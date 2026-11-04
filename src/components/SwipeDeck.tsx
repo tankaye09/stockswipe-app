@@ -56,6 +56,9 @@ function createGestures<T>(initialProps: Props<T>) {
   const responder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > TAP_SLOP || Math.abs(g.dy) > TAP_SLOP,
+    // Keep the drag once it starts. Android's native tab screens otherwise
+    // hand horizontal drags to an ancestor mid-swipe and the card snaps back.
+    onPanResponderTerminationRequest: () => false,
     onPanResponderMove: (_, g) => {
       if (busy || !getProps().items[0]) return;
       pos.setValue({ x: g.dx, y: g.dy * 0.3 });

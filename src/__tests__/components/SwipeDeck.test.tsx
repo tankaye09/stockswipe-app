@@ -62,6 +62,7 @@ it('swipes right past the threshold', async () => {
   expect(handlers.onStartShouldSetPanResponder!(evt, g({}))).toBe(true);
   expect(handlers.onMoveShouldSetPanResponder!(evt, g({ dx: 20 }))).toBe(true);
   expect(handlers.onMoveShouldSetPanResponder!(evt, g({ dx: 1 }))).toBe(false);
+  expect(handlers.onPanResponderTerminationRequest!(evt, g({}))).toBe(false);
   handlers.onPanResponderMove!(evt, g({ dx: 200, dy: 10 }));
   handlers.onPanResponderRelease!(evt, g({ dx: 300 }));
   await finishAnimation();
