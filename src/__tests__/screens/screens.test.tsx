@@ -5,8 +5,11 @@ import React from 'react';
 import { Alert, Linking } from 'react-native';
 import TabsLayout from '../../app/(tabs)/_layout';
 import PortfolioScreen from '../../app/(tabs)/portfolio';
+import PortfolioLayout from '../../app/(tabs)/portfolio/_layout';
 import SettingsScreen from '../../app/(tabs)/settings';
+import SettingsLayout from '../../app/(tabs)/settings/_layout';
 import WatchlistScreen from '../../app/(tabs)/watchlist';
+import WatchlistLayout from '../../app/(tabs)/watchlist/_layout';
 import RootLayout from '../../app/_layout';
 import FiltersScreen from '../../app/filters';
 import Onboarding from '../../app/onboarding';
@@ -71,9 +74,29 @@ describe('Layouts', () => {
     for (const name of ['index', 'watchlist', 'portfolio', 'settings']) {
       expect(await screen.findByTestId(`screen-${name}`)).toBeOnTheScreen();
     }
-    for (const icon of ['discover', 'watchlist', 'paper', 'settings']) {
-      expect(screen.getByTestId(`tab-icon-${icon}`)).toBeOnTheScreen();
+    expect(screen.getByTestId('screen-watchlist')).toHaveProp('accessibilityHint', 'tab-watchlist');
+  });
+
+  it('tabs use outline SF Symbols that fill when selected, and Material Symbols on Android', async () => {
+    await renderWithState(<TabsLayout />);
+    for (const [label, icons] of [
+      ['Discover', 'sf:rectangle.stack/rectangle.stack.fill md:stacks'],
+      ['Watchlist', 'sf:star/star.fill md:star'],
+      ['Paper', 'sf:chart.bar/chart.bar.fill md:bar_chart'],
+      ['Settings', 'sf:gearshape/gearshape.fill md:settings'],
+    ]) {
+      expect(await screen.findByText(label)).toBeOnTheScreen();
+      expect(screen.getByText(icons)).toBeOnTheScreen();
     }
+  });
+
+  it.each([
+    ['watchlist', WatchlistLayout, 'Watchlist'],
+    ['portfolio', PortfolioLayout, 'Paper'],
+    ['settings', SettingsLayout, 'Settings'],
+  ])('the %s tab has a header titled %s', async (_tab, Layout, title) => {
+    await render(<Layout />);
+    expect(screen.getByTestId('screen-index')).toHaveProp('accessibilityLabel', title);
   });
 });
 

@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { StockRow } from '../../components/StockRow';
-import { useStocks } from '../../components/useStocks';
-import { useAppState } from '../../state/store';
-import { colors, space } from '../../theme';
+import { StockRow } from '../../../components/StockRow';
+import { useStocks } from '../../../components/useStocks';
+import { useAppState } from '../../../state/store';
+import { colors, space } from '../../../theme';
 
 export default function WatchlistScreen() {
   const { state, dispatch } = useAppState();

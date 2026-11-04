@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
-import { StockRow } from '../../components/StockRow';
-import { Button, Disclaimer } from '../../components/ui';
-import { useStocks } from '../../components/useStocks';
-import { portfolioValueUsd, positionPnl, STARTING_CASH_USD } from '../../state/rules';
-import { useAppState } from '../../state/store';
-import { changeColor, colors, fmtPct, fmtPrice, space } from '../../theme';
+import { StockRow } from '../../../components/StockRow';
+import { Button, Disclaimer } from '../../../components/ui';
+import { useStocks } from '../../../components/useStocks';
+import { portfolioValueUsd, positionPnl, STARTING_CASH_USD } from '../../../state/rules';
+import { useAppState } from '../../../state/store';
+import { changeColor, colors, fmtPct, fmtPrice, space } from '../../../theme';
 
 export default function PortfolioScreen() {
   const { state, dispatch } = useAppState();

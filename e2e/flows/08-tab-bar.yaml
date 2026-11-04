@@ -1,20 +1,17 @@
 appId: com.stockswipe.app
-name: The tab bar icons switch between the four sections
+name: The tab bar switches between the four sections
 ---
+# Tabs are matched by label: Maestro can't read native tab testIDs on Android.
 - runFlow: ../subflows/onboard.yaml
-- tapOn:
-    id: 'tab-watchlist'
+- tapOn: 'Watchlist'
 - assertVisible:
     id: 'watchlist-empty'
-- tapOn:
-    id: 'tab-paper'
+- tapOn: 'Paper'
 - assertVisible:
     id: 'portfolio'
-- tapOn:
-    id: 'tab-settings'
+- tapOn: 'Settings'
 - assertVisible:
     id: 'settings'
-- tapOn:
-    id: 'tab-discover'
+- tapOn: 'Discover'
 - assertVisible:
     id: 'deck'

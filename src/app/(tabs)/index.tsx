@@ -21,7 +21,7 @@ export default function DiscoverScreen() {
   // A new key starts a fresh feed whenever what shapes it changes.
   const feedKey = JSON.stringify([state.markets, state.filters, state.interests]);
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       {universe ? (
         <Feed key={feedKey} universe={universe} />
       ) : (

@@ -1,39 +1,32 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Redirect } from 'expo-router';
+import { NativeTabs } from 'expo-router/native-tabs';
 import React from 'react';
-import type { ColorValue } from 'react-native';
-import { TabIcon, type TabIconName } from '../../components/TabIcon';
+import { TABS } from '../../navigation/tabs';
 import { useAppState } from '../../state/store';
 import { colors } from '../../theme';
 
-/** Tab options shared by every tab: its icon and a testID for e2e flows. */
-const tab = (title: string, iconName: TabIconName) => ({
-  title,
-  tabBarButtonTestID: `tab-${iconName}`,
-  tabBarIcon: ({ color, focused }: { color: ColorValue; focused: boolean }) => (
-    <TabIcon name={iconName} color={color} focused={focused} />
-  ),
-});
-
+/**
+ * The system tab bar: Liquid Glass with SF Symbols on iOS 26+, and a
+ * Material bottom bar on Android.
+ */
 export default function TabsLayout() {
   const { state } = useAppState();
 
   if (!state.onboarded) return <Redirect href="/onboarding" />;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.bg },
-        headerTintColor: colors.text,
-        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textFaint,
-        sceneStyle: { backgroundColor: colors.bg },
-      }}
+    <NativeTabs
+      tintColor={colors.accent}
+      iconColor={{ default: colors.textFaint, selected: colors.accent }}
+      labelStyle={{ default: { color: colors.textFaint }, selected: { color: colors.accent } }}
+      backgroundColor={colors.bg}
     >
-      <Tabs.Screen name="index" options={{ ...tab('Discover', 'discover'), headerShown: false }} />
-      <Tabs.Screen name="watchlist" options={tab('Watchlist', 'watchlist')} />
-      <Tabs.Screen name="portfolio" options={tab('Paper', 'paper')} />
-      <Tabs.Screen name="settings" options={tab('Settings', 'settings')} />
-    </Tabs>
+      {TABS.map((tab) => (
+        <NativeTabs.Trigger key={tab.name} name={tab.name} testID={`tab-${tab.name}`}>
+          <NativeTabs.Trigger.Icon sf={tab.sf} md={tab.md} />
+          <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
+        </NativeTabs.Trigger>
+      ))}
+    </NativeTabs>
   );
 }
