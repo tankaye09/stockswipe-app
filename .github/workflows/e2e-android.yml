@@ -61,6 +61,8 @@ jobs:
           cores: 4
           ram-size: 4096M
           script: |
+            adb shell settings put global verifier_verify_adb_installs 0
+            adb shell settings put global package_verifier_enable 0
             adb install android/app/build/outputs/apk/release/app-release.apk
             maestro test e2e/flows --format junit --output e2e-report.xml
 
