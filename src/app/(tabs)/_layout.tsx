@@ -1,13 +1,18 @@
 import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
-import { Text, type ColorValue } from 'react-native';
+import type { ColorValue } from 'react-native';
+import { TabIcon, type TabIconName } from '../../components/TabIcon';
 import { useAppState } from '../../state/store';
 import { colors } from '../../theme';
 
-const icon = (glyph: string) =>
-  function TabIcon({ color }: { color: ColorValue }) {
-    return <Text style={{ fontSize: 20, color }}>{glyph}</Text>;
-  };
+/** Tab options shared by every tab: its icon and a testID for e2e flows. */
+const tab = (title: string, iconName: TabIconName) => ({
+  title,
+  tabBarButtonTestID: `tab-${iconName}`,
+  tabBarIcon: ({ color, focused }: { color: ColorValue; focused: boolean }) => (
+    <TabIcon name={iconName} color={color} focused={focused} />
+  ),
+});
 
 export default function TabsLayout() {
   const { state } = useAppState();
@@ -25,10 +30,10 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: colors.bg },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Discover', headerShown: false, tabBarIcon: icon('🔥') }} />
-      <Tabs.Screen name="watchlist" options={{ title: 'Watchlist', tabBarIcon: icon('⭐') }} />
-      <Tabs.Screen name="portfolio" options={{ title: 'Paper', tabBarIcon: icon('📈') }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: icon('⚙️') }} />
+      <Tabs.Screen name="index" options={{ ...tab('Discover', 'discover'), headerShown: false }} />
+      <Tabs.Screen name="watchlist" options={tab('Watchlist', 'watchlist')} />
+      <Tabs.Screen name="portfolio" options={tab('Paper', 'paper')} />
+      <Tabs.Screen name="settings" options={tab('Settings', 'settings')} />
     </Tabs>
   );
 }

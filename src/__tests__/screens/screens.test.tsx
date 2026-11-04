@@ -71,6 +71,9 @@ describe('Layouts', () => {
     for (const name of ['index', 'watchlist', 'portfolio', 'settings']) {
       expect(await screen.findByTestId(`screen-${name}`)).toBeOnTheScreen();
     }
+    for (const icon of ['discover', 'watchlist', 'paper', 'settings']) {
+      expect(screen.getByTestId(`tab-icon-${icon}`)).toBeOnTheScreen();
+    }
   });
 });
 
