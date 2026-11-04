@@ -1,0 +1,66 @@
+# CLAUDE.md
+
+@AGENTS.md
+
+AGENTS.md (imported above) holds the Expo rules and this project's code rules. This file adds the context that several
+people and agents working on the repo at once keep needing. Keep it short, and update it in the same PR when a rule
+changes.
+
+## What this is
+
+Swipe (working name): a swipe feed of stocks for iOS and Android, built with Expo (React Native + TypeScript) and Expo
+Router. Cards explain a company in plain English with a chart and key stats. Right-swipe saves to the watchlist (or, in
+Trade mode, hands off to the user's broker), left-swipe skips, and there is paper trading. Markets are US and SGX, US
+first. Everything runs on sample data in `src/data/mock` until a market data provider is chosen. There is no real
+trading in the app. See README.md for the feature map and folder layout.
+
+## Code standards
+
+- Easy to maintain, read and scale. Pure rules in `src/feed/` and `src/state/rules.ts`, thin screens.
+- Full test coverage. Every change comes with unit/component tests (Jest thresholds in `package.json`: 98% statements,
+  functions, lines; 95% branches) and a Maestro flow for any new or changed user journey.
+- E2E flows are isolated and can run in parallel. Each flow starts with `runFlow: ../subflows/onboard.yaml` (which
+  clears app state), never depends on another flow or on run order, and taps elements by `testID`.
+- One shared UI for both platforms. No iOS-only or Android-only code, components or styling. The only accepted
+  `Platform.select` is for values the stores force to differ, such as per-store SDK keys or ad unit IDs.
+- No buy/sell verdicts anywhere in content or UI, and every feed card says why it was shown. The app explains; it does
+  not recommend. (Paper trading buttons are fine.)
+- The feed is rule-based and explainable (4 liked / 3 news / 3 wildcard per 10). Ads and payments never change which
+  stocks are shown.
+
+## Before you push
+
+```bash
+npm run typecheck && npm run lint && npm run format:check && npm run test:coverage
+```
+
+Native builds and e2e flows run in CI; this container can't run simulators.
+
+## CI and e2e
+
+- `ci.yml`: typecheck, lint, format, unit tests with coverage on every push and PR.
+- `e2e-android.yml`: builds a release APK on every PR and runs the Maestro flows on an emulator. With #4 the APK is built
+  once and each flow runs in its own job. With #6 the APK, Gradle, ccache and the emulator snapshot are cached, and a
+  build-only run on `main` keeps the caches warm for PRs. Bump `APK_CACHE_VERSION` if you change how the APK is built.
+- `e2e-ios.yml`: runs on pushes to `main` and on demand (macOS minutes are costly). Expo SDK 58 needs **Xcode 26**
+  (`expo-modules-jsi` uses Swift tools 6.2), so the job must use the `macos-26` runner (#5). Keep `set -o pipefail` on
+  piped build steps so a failed `xcodebuild` fails its own step.
+- The e2e workflows set `EXPO_PUBLIC_UNDO_MS=20000` so slow emulators can tap Undo, and (with #7)
+  `EXPO_PUBLIC_ADMIN_TOOLS=1` so flows can use the admin page.
+
+## Premium, limits and ads (#7)
+
+- All revenue settings are in `src/monetization/config.ts`, read from `EXPO_PUBLIC_*` env vars (see `.env.example`).
+- Purchases go through RevenueCat (`src/monetization/purchases.ts`), one API for both stores. Without a key, and always in
+  Expo Go, the app uses test mode.
+- Free tier limits (trial days, daily swipes, ad interval) always come from `effectiveLimits(state)`, never constants.
+  They are layered: built-in defaults (7 / 50 / 10), then RevenueCat offering metadata
+  (`free_days`, `daily_swipes`, `ad_every`) set in the RevenueCat dashboard with no app update, then per-device
+  overrides from the hidden admin page `src/app/admin.tsx`.
+- The admin page only exists in dev builds and builds with `EXPO_PUBLIC_ADMIN_TOOLS=1`. Never enable it in store builds.
+
+## Working alongside other PRs
+
+Several PRs are often open at once and touch the same files (`package.json`, `package-lock.json`, the e2e workflows,
+README, AGENTS.md). Keep changes narrow, and rebase rather than rewrite when another PR lands first. After a lockfile
+conflict, re-run `npm install`.
