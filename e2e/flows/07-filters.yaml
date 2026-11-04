@@ -1,0 +1,13 @@
+appId: com.stockswipe.app
+name: Filters narrow the feed
+---
+- runFlow: ../subflows/onboard.yaml
+- tapOn:
+    id: 'open-filters'
+- tapOn:
+    id: 'filter-sector-Energy'
+- tapOn:
+    id: 'filters-apply'
+- assertVisible: 'Filters \(1\)'
+- assertVisible:
+    id: 'card-symbol'

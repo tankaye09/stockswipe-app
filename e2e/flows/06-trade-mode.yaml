@@ -1,0 +1,15 @@
+appId: com.stockswipe.app
+name: Trade mode asks for a broker first
+---
+- runFlow: ../subflows/onboard.yaml
+- tapOn:
+    id: 'mode-trade'
+- tapOn:
+    id: 'right-button'
+- assertVisible:
+    id: 'pick-broker-hint'
+- tapOn:
+    id: 'broker-moomoo'
+- assertVisible:
+    id: 'broker-moomoo'
+    selected: true

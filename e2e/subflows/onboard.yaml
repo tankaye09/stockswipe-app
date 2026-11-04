@@ -1,0 +1,21 @@
+# Fresh install: pick interests and land on the swipe feed.
+appId: com.stockswipe.app
+---
+- launchApp:
+    clearState: true
+- assertVisible: 'What are you into?'
+- assertVisible:
+    id: 'onboarding-continue'
+    enabled: false
+- tapOn:
+    id: 'interest-gaming'
+- tapOn:
+    id: 'interest-ai'
+- tapOn:
+    id: 'interest-coffee-food'
+- tapOn:
+    id: 'onboarding-continue'
+- assertVisible:
+    id: 'deck'
+- assertVisible:
+    id: 'card-symbol'

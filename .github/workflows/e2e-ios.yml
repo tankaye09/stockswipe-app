@@ -1,0 +1,49 @@
+name: E2E (iOS)
+
+# macOS runners are slow and cost more minutes, so this runs on demand and on main.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  maestro:
+    name: Maestro flows on an iOS simulator
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Generate the native iOS project
+        run: npx expo prebuild --platform ios
+
+      - name: Build for the simulator (Release, JS bundled in)
+        run: |
+          xcodebuild -workspace ios/Swipe.xcworkspace -scheme Swipe -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO | tail -n 50
+
+      - name: Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Boot a simulator and install the app
+        run: |
+          UDID=$(xcrun simctl list devices available -j | node -e 'const d=JSON.parse(require("fs").readFileSync(0)).devices;for(const k in d)for(const x of d[k])if(/iPhone/.test(x.name)){console.log(x.udid);process.exit(0)}')
+          xcrun simctl boot "$UDID"
+          xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Swipe.app
+
+      - name: Run flows
+        run: maestro test e2e/flows --format junit --output e2e-report.xml
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-ios-report
+          path: e2e-report.xml

@@ -1,0 +1,15 @@
+appId: com.stockswipe.app
+name: Swiping left skips without saving
+---
+- runFlow: ../subflows/onboard.yaml
+- swipe:
+    from:
+      id: 'deck'
+    direction: LEFT
+- tapOn:
+    id: 'skip-button'
+- assertVisible:
+    id: 'card-symbol'
+- tapOn: 'Watchlist'
+- assertVisible:
+    id: 'watchlist-empty'
