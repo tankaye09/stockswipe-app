@@ -10,7 +10,7 @@ maestro test "e2e/flows/$flow.yaml" --format junit --output "e2e-$flow.xml" && e
 echo "::group::On screen when $flow failed (id | text)"
 maestro hierarchy 2>/dev/null |
   jq -r '.. | objects | .attributes? // empty
-    | [.["resource-id"], .text, .accessibilityText] | map(select(. != null and . != "")) | select(length > 0)
+    | [.["resource-id"], .text, .accessibilityText, .bounds] | map(select(. != null and . != "")) | select(length > 0)
     | join(" | ")' || echo "Could not read the screen."
 echo "::endgroup::"
 echo "::group::Recent app logs"
