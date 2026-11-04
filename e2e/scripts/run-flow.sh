@@ -5,6 +5,10 @@
 set -u
 flow="$1"
 
+# A freshly booted CI emulator sometimes shows "System isn't responding" dialogs
+# over the app. They're about the emulator, not the app, so hide them.
+adb shell settings put global hide_error_dialogs 1 || true
+
 maestro test "e2e/flows/$flow.yaml" --format junit --output "e2e-$flow.xml" && exit 0
 
 echo "::group::On screen when $flow failed (id | text)"
