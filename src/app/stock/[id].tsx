@@ -6,7 +6,8 @@ import { PaperTradePanel } from '../../components/PaperTradePanel';
 import { PriceChart } from '../../components/PriceChart';
 import { Button, Chip, Disclaimer, Row, SectionTitle } from '../../components/ui';
 import { useHistory } from '../../components/useHistory';
-import { marketData, type ChartRange, type StockId, type StockSummary } from '../../data';
+import { marketData, type ChartRange, type StockSummary } from '../../data';
+import { parseStockIdParam } from '../../state/persist';
 import { useAppState } from '../../state/store';
 import { changeColor, colors, fmtBig, fmtPct, fmtPrice, space } from '../../theme';
 
@@ -14,20 +15,21 @@ const RANGES: ChartRange[] = ['1M', '6M', '1Y'];
 
 export default function StockScreen() {
   const params = useLocalSearchParams<{ id: string }>();
-  const id = decodeURIComponent(params.id) as StockId;
+  // The id can come from a deep link, so treat it as untrusted input.
+  const id = parseStockIdParam(params.id);
   const { state, dispatch } = useAppState();
   const [stock, setStock] = useState<StockSummary | null | undefined>(undefined);
   const [range, setRange] = useState<ChartRange>('6M');
   const points = useHistory(id, range);
   const { width } = useWindowDimensions();
-  const saved = state.watchlist.includes(id);
+  const saved = id !== null && state.watchlist.includes(id);
 
   useEffect(() => {
-    marketData.getStock(id).then(setStock);
+    if (id) marketData.getStock(id).then(setStock);
   }, [id]);
 
+  if (id === null || stock === null) return <Text style={styles.body}>Stock not found.</Text>;
   if (stock === undefined) return <ActivityIndicator color={colors.accent} style={{ marginTop: 80 }} />;
-  if (stock === null) return <Text style={styles.body}>Stock not found.</Text>;
 
   const b = stock.breakdown;
   return (
