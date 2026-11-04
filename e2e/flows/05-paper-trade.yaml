@@ -19,7 +19,9 @@ name: Paper buy shows up in the paper portfolio
     id: 'paper-message'
 - assertVisible:
     id: 'paper-position'
-- back
+# Maestro's `back` only works on Android, so tap the header's back button.
+# It is labelled "Back" on iOS and "Navigate up" on Android.
+- tapOn: 'Back|Navigate up'
 - tapOn:
     id: 'tab-paper'
 - assertVisible: '1 share'

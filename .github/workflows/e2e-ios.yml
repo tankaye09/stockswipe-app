@@ -48,7 +48,9 @@ jobs:
           xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Swipe.app
 
       - name: Run flows
-        run: maestro test e2e/flows --format junit --output e2e-report.xml
+        # On failure, print what was on screen at each failed step, since cloud
+        # sessions can't open the screenshots in the uploaded report.
+        run: maestro test e2e/flows --format junit --output e2e-report.xml || { node e2e/scripts/summarize-failures.js; exit 1; }
 
       - uses: actions/upload-artifact@v4
         if: always()
