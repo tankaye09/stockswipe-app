@@ -71,7 +71,7 @@ jobs:
           heap-size: 512M
           script: |
             adb install "$RUNNER_TEMP/app-release.apk"
-            maestro test e2e/flows --format junit --output e2e-report.xml
+            maestro test e2e/flows --format junit --output e2e-report.xml || { adb logcat -d -s ReactNativeJS:V ReactNative:W AndroidRuntime:E | tail -n 200; exit 1; }
 
       - uses: actions/upload-artifact@v4
         if: always()
