@@ -65,10 +65,9 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
-          # The defaults (2 cores, small RAM) make the emulator too slow for reliable runs.
-          cores: 4
-          ram-size: 4096M
-          heap-size: 512M
+          # Leave 2 of the runner's 4 cores to the host; giving the emulator all 4 made runs worse.
+          cores: 2
+          ram-size: 3072M
           script: |
             adb install "$RUNNER_TEMP/app-release.apk"
             maestro test e2e/flows --format junit --output e2e-report.xml || { node e2e/scripts/summarize-failures.js; adb logcat -d -s ReactNativeJS:V AndroidRuntime:E | tail -n 100; exit 1; }
