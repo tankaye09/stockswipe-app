@@ -13,7 +13,8 @@ env:
 jobs:
   maestro:
     name: Maestro flows on an iOS simulator
-    runs-on: macos-15
+    # Expo SDK 58 needs Xcode 26 or newer (Swift 6.2). macos-15 defaults to Xcode 16.4.
+    runs-on: macos-26
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +28,10 @@ jobs:
         run: npx expo prebuild --platform ios
 
       - name: Build for the simulator (Release, JS bundled in)
+        # pipefail makes a failed build fail this step, even though the output goes through tail.
         run: |
+          set -o pipefail
+          xcodebuild -version
           xcodebuild -workspace ios/Swipe.xcworkspace -scheme Swipe -configuration Release \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO | tail -n 50
