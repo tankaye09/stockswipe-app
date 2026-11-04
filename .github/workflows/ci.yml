@@ -46,4 +46,5 @@ jobs:
       # or an `overrides` entry in package.json when the parent package hasn't caught up.
       - run: npm audit --audit-level=moderate
       # Checks that every installed package matches the signature npm published.
-      - run: npm ci --ignore-scripts && npm audit signatures
+      # Node 22's bundled npm 10 doesn't know npm's newer attestation keys, so use npm 11.
+      - run: npm ci --ignore-scripts && npx --yes npm@11.21.2 audit signatures
