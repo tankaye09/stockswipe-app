@@ -3,7 +3,7 @@ import { fireEvent, render, screen, userEvent, waitFor } from '@testing-library/
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { Alert, Linking } from 'react-native';
-import TabsLayout from '../../app/(tabs)/_layout';
+import IosTabsLayout from '../../app/(tabs)/_layout.ios';
 import PortfolioScreen from '../../app/(tabs)/portfolio';
 import PortfolioLayout from '../../app/(tabs)/portfolio/_layout';
 import SettingsScreen from '../../app/(tabs)/settings';
@@ -53,40 +53,62 @@ describe('Onboarding', () => {
   });
 });
 
+// Jest resolves `_layout` to the iOS file, so load the Android/web layout by its full name.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const TabsLayout: React.ComponentType = require('../../app/(tabs)/_layout.tsx').default;
+
 describe('Layouts', () => {
   it('root layout renders the app', async () => {
     await render(<RootLayout />);
     expect(screen.getByTestId('screen-(tabs)')).toBeOnTheScreen();
   });
 
-  it('tabs redirect new users to onboarding', async () => {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ onboarded: false }));
-    await render(
-      <AppStateProvider>
-        <TabsLayout />
-      </AppStateProvider>,
-    );
-    expect(await screen.findByText('redirect:/onboarding')).toBeOnTheScreen();
+  describe.each([
+    ['iOS (native Liquid Glass tabs)', IosTabsLayout],
+    ['Android (JS tabs)', TabsLayout],
+  ])('%s', (_platform, Layout) => {
+    it('redirects new users to onboarding', async () => {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ onboarded: false }));
+      await render(
+        <AppStateProvider>
+          <Layout />
+        </AppStateProvider>,
+      );
+      expect(await screen.findByText('redirect:/onboarding')).toBeOnTheScreen();
+    });
+
+    it('shows the four sections for onboarded users', async () => {
+      await renderWithState(<Layout />);
+      for (const name of ['index', 'watchlist', 'portfolio', 'settings']) {
+        expect(await screen.findByTestId(`screen-${name}`)).toBeOnTheScreen();
+      }
+      expect(screen.getByTestId('screen-watchlist')).toHaveProp('accessibilityHint', 'tab-watchlist');
+    });
   });
 
-  it('tabs show the four sections for onboarded users', async () => {
-    await renderWithState(<TabsLayout />);
-    for (const name of ['index', 'watchlist', 'portfolio', 'settings']) {
-      expect(await screen.findByTestId(`screen-${name}`)).toBeOnTheScreen();
-    }
-    expect(screen.getByTestId('screen-watchlist')).toHaveProp('accessibilityHint', 'tab-watchlist');
-  });
-
-  it('tabs use outline SF Symbols that fill when selected, and Material Symbols on Android', async () => {
-    await renderWithState(<TabsLayout />);
-    for (const [label, icons] of [
-      ['Discover', 'sf:rectangle.stack/rectangle.stack.fill md:stacks'],
-      ['Watchlist', 'sf:star/star.fill md:star'],
-      ['Paper', 'sf:chart.bar/chart.bar.fill md:bar_chart'],
-      ['Settings', 'sf:gearshape/gearshape.fill md:settings'],
+  it('iOS tabs use SF Symbols that fill when selected', async () => {
+    await renderWithState(<IosTabsLayout />);
+    for (const [label, icon] of [
+      ['Discover', 'sf:rectangle.stack/rectangle.stack.fill'],
+      ['Watchlist', 'sf:star/star.fill'],
+      ['Paper', 'sf:chart.bar/chart.bar.fill'],
+      ['Settings', 'sf:gearshape/gearshape.fill'],
     ]) {
       expect(await screen.findByText(label)).toBeOnTheScreen();
-      expect(screen.getByText(icons)).toBeOnTheScreen();
+      expect(screen.getByText(icon)).toBeOnTheScreen();
+    }
+  });
+
+  it('Android tabs use the matching drawn icons and titles', async () => {
+    await renderWithState(<TabsLayout />);
+    for (const [name, label, icon] of [
+      ['index', 'Discover', 'discover'],
+      ['watchlist', 'Watchlist', 'watchlist'],
+      ['portfolio', 'Paper', 'paper'],
+      ['settings', 'Settings', 'settings'],
+    ]) {
+      expect(await screen.findByTestId(`screen-${name}`)).toHaveProp('accessibilityLabel', label);
+      expect(screen.getByTestId(`tab-icon-${icon}`)).toBeOnTheScreen();
     }
   });
 

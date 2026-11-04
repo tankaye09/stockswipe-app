@@ -7,12 +7,18 @@ beforeEach(async () => {
   await mockAsyncStorage.clear();
 });
 
+type MockScreenOptions = { title?: string; tabBarButtonTestID?: string; tabBarIcon?: (p: object) => unknown };
+
 // Screens are tested without the real navigator; e2e flows cover real navigation.
 jest.mock('expo-router', () => {
   const React = require('react');
   const { Text, View } = require('react-native');
-  const Screen = ({ name, options }: { name: string; options?: { title?: string } }) =>
-    React.createElement(View, { testID: `screen-${name}`, accessibilityLabel: options?.title });
+  const Screen = ({ name, options }: { name: string; options?: MockScreenOptions }) =>
+    React.createElement(
+      View,
+      { testID: `screen-${name}`, accessibilityLabel: options?.title, accessibilityHint: options?.tabBarButtonTestID },
+      options?.tabBarIcon?.({ color: '#fff', focused: false, size: 24 }),
+    );
   const Navigator = ({ children }: { children?: unknown }) => React.createElement(View, null, children);
   return {
     router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
@@ -34,8 +40,7 @@ jest.mock('expo-router/native-tabs', () => {
   const show = (icon: MockIconPair) => (typeof icon === 'string' ? icon : `${icon.default}/${icon.selected}`);
   const Trigger = ({ name, testID, children }: { name: string; testID?: string; children?: unknown }) =>
     React.createElement(View, { testID: `screen-${name}`, accessibilityHint: testID }, children);
-  const Icon = ({ sf, md }: { sf: MockIconPair; md: MockIconPair }) =>
-    React.createElement(Text, null, `sf:${show(sf)} md:${show(md)}`);
+  const Icon = ({ sf }: { sf: MockIconPair }) => React.createElement(Text, null, `sf:${show(sf)}`);
   const Label = ({ children }: { children?: string }) => React.createElement(Text, null, children);
   const NativeTabs = ({ children }: { children?: unknown }) => React.createElement(View, null, children);
   return { NativeTabs: Object.assign(NativeTabs, { Trigger: Object.assign(Trigger, { Icon, Label }) }) };

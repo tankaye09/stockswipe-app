@@ -1,13 +1,14 @@
-import { Redirect } from 'expo-router';
-import { NativeTabs } from 'expo-router/native-tabs';
+import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
+import type { ColorValue } from 'react-native';
+import { TabIcon } from '../../components/TabIcon';
 import { TABS } from '../../navigation/tabs';
 import { useAppState } from '../../state/store';
 import { colors } from '../../theme';
 
 /**
- * The system tab bar: Liquid Glass with SF Symbols on iOS 26+, and a
- * Material bottom bar on Android.
+ * Android (and web) tab bar. iOS uses the native Liquid Glass bar in
+ * `_layout.ios.tsx`. Each tab with a title nests its own Stack for the header.
  */
 export default function TabsLayout() {
   const { state } = useAppState();
@@ -15,18 +16,28 @@ export default function TabsLayout() {
   if (!state.onboarded) return <Redirect href="/onboarding" />;
 
   return (
-    <NativeTabs
-      tintColor={colors.accent}
-      iconColor={{ default: colors.textFaint, selected: colors.accent }}
-      labelStyle={{ default: { color: colors.textFaint }, selected: { color: colors.accent } }}
-      backgroundColor={colors.bg}
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textFaint,
+        sceneStyle: { backgroundColor: colors.bg },
+      }}
     >
       {TABS.map((tab) => (
-        <NativeTabs.Trigger key={tab.name} name={tab.name} testID={`tab-${tab.name}`}>
-          <NativeTabs.Trigger.Icon sf={tab.sf} md={tab.md} />
-          <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.label,
+            tabBarButtonTestID: `tab-${tab.name}`,
+            tabBarIcon: ({ color, focused }: { color: ColorValue; focused: boolean }) => (
+              <TabIcon name={tab.icon} color={color} focused={focused} />
+            ),
+          }}
+        />
       ))}
-    </NativeTabs>
+    </Tabs>
   );
 }

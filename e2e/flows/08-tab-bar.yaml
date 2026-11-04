@@ -1,7 +1,7 @@
 appId: com.stockswipe.app
 name: The tab bar switches between the four sections
 ---
-# Tabs are matched by label: Maestro can't read native tab testIDs on Android.
+# Tabs are matched by label, which works for both the iOS native bar and the Android JS bar.
 - runFlow: ../subflows/onboard.yaml
 - tapOn: 'Watchlist'
 - assertVisible:
