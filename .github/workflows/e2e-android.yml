@@ -50,17 +50,17 @@ jobs:
           distribution: temurin
           java-version: 17
       # Caches Gradle's downloads and build outputs between runs.
+      # Pull requests save their own caches too, so a second push to the same pull request builds fast.
       - uses: gradle/actions/setup-gradle@v4
         if: steps.apk.outputs.cache-hit != 'true'
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-read-only: false
       # Caches compiled C++ from React Native and its native libraries, which Gradle's cache can't hold.
       - uses: hendrikmuhs/ccache-action@v1.2
         if: steps.apk.outputs.cache-hit != 'true'
         with:
           key: ccache-android
           max-size: 2G
-          save: ${{ github.ref == 'refs/heads/main' }}
       - run: npm ci
         if: steps.apk.outputs.cache-hit != 'true'
       - name: Generate the native Android project
