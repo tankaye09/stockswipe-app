@@ -11,6 +11,8 @@ name: Paper buy shows up in the paper portfolio
     element:
       id: 'paper-buy'
     direction: DOWN
+    centerElement: true
+- waitForAnimationToEnd
 - tapOn:
     id: 'paper-buy'
 - assertVisible:

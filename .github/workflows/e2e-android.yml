@@ -8,12 +8,22 @@ concurrency:
   group: e2e-android-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Keep the undo toast up long enough for a slow emulator to tap it.
+  EXPO_PUBLIC_UNDO_MS: '20000'
+
 jobs:
   maestro:
     name: Maestro flows on an Android emulator
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      # The release build plus the emulator image overflow the runner's disk, so clear tools we don't use.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL /usr/local/lib/node_modules
+          sudo docker image prune --all --force
+          df -h /
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -32,6 +42,12 @@ jobs:
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
 
+      - name: Keep the APK and drop build leftovers
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/app-release.apk"
+          rm -rf android ~/.gradle/caches
+          df -h /
+
       - name: Install Maestro
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
@@ -49,9 +65,12 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
+          # Leave 2 of the runner's 4 cores to the host; giving the emulator all 4 made runs worse.
+          cores: 2
+          ram-size: 3072M
           script: |
-            adb install android/app/build/outputs/apk/release/app-release.apk
-            maestro test e2e/flows --format junit --output e2e-report.xml
+            adb install "$RUNNER_TEMP/app-release.apk"
+            maestro test e2e/flows --format junit --output e2e-report.xml || { node e2e/scripts/summarize-failures.js; adb logcat -d -s ReactNativeJS:V AndroidRuntime:E | tail -n 100; exit 1; }
 
       - uses: actions/upload-artifact@v4
         if: always()

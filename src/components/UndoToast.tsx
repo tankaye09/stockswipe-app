@@ -2,7 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, space } from '../theme';
 
-export const UNDO_MS = 3500;
+/**
+ * How long the undo toast stays up. End-to-end builds raise it (EXPO_PUBLIC_UNDO_MS)
+ * because slow CI emulators can take longer than this just to finish a tap.
+ */
+export const UNDO_MS = Number(process.env.EXPO_PUBLIC_UNDO_MS) || 3500;
 
 export interface Pending {
   message: string;

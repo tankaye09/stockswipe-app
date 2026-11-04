@@ -3,9 +3,9 @@ name: Swiping left skips without saving
 ---
 - runFlow: ../subflows/onboard.yaml
 - swipe:
-    from:
-      id: 'deck'
-    direction: LEFT
+    start: '85%, 45%'
+    end: '5%, 45%'
+    duration: 300
 - tapOn:
     id: 'skip-button'
 - assertVisible:
