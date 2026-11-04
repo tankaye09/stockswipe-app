@@ -30,4 +30,6 @@ name: Paper buy shows up in the paper portfolio
     timeout: 60000
 - tapOn:
     id: 'tab-paper'
-- assertVisible: '1 share'
+# On iOS a pressable row reads as one element holding all of its text, so
+# match "1 share" anywhere in it rather than as the whole text.
+- assertVisible: '.*1 share.*'
