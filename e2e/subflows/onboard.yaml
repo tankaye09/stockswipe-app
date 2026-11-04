@@ -6,7 +6,7 @@ appId: com.stockswipe.app
 # A cold start on a CI emulator can take well over the default wait.
 - extendedWaitUntil:
     visible: 'What are you into?'
-    timeout: 30000
+    timeout: 60000
 - assertVisible:
     id: 'onboarding-continue'
     enabled: false
