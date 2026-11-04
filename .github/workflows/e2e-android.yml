@@ -55,12 +55,6 @@ jobs:
         if: steps.apk.outputs.cache-hit != 'true'
         with:
           cache-read-only: false
-      # Caches compiled C++ from React Native and its native libraries, which Gradle's cache can't hold.
-      - uses: hendrikmuhs/ccache-action@v1.2
-        if: steps.apk.outputs.cache-hit != 'true'
-        with:
-          key: ccache-android
-          max-size: 2G
       - run: npm ci
         if: steps.apk.outputs.cache-hit != 'true'
       - name: Generate the native Android project
@@ -69,13 +63,24 @@ jobs:
           npx expo prebuild --platform android --no-install
           # The default 512 MB metaspace runs out near the end of the build.
           sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g/' android/gradle.properties
+      # Most of the build is compiling the native libraries (C++ and Kotlin), which only change with
+      # dependencies or app.json. Restore their build output so Gradle only redoes what changed,
+      # usually just the JS bundle. Restored after prebuild, which recreates the android folder.
+      - name: Restore native build output
+        if: steps.apk.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/.gradle
+            android/build
+            android/app/build
+            android/app/.cxx
+            node_modules/**/android/build
+            node_modules/**/android/.cxx
+          key: android-native-${{ env.APK_CACHE_VERSION }}-${{ hashFiles('package-lock.json', 'app.json') }}
       - name: Build a release APK (JS bundled in, no dev server needed)
         if: steps.apk.outputs.cache-hit != 'true'
         working-directory: android
-        env:
-          CMAKE_C_COMPILER_LAUNCHER: ccache
-          CMAKE_CXX_COMPILER_LAUNCHER: ccache
-          CCACHE_BASEDIR: ${{ github.workspace }}
         # R8 minifying and PNG crunching only shrink the APK, which tests don't need, and they take minutes.
         run: >
           ./gradlew assembleRelease --build-cache

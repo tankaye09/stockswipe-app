@@ -81,9 +81,10 @@ Principles:
 
 - `ci.yml`: typecheck, lint, format check and unit tests with coverage, on every push and pull request.
 - `e2e-android.yml`: builds a release APK once, then runs every flow in parallel, each on its own emulator, on every
-  pull request. To keep it fast it reuses the last APK when nothing in it changed, caches Gradle and C++ build output
-  (filled by a build-only run on `main`), skips R8 minifying, and boots emulators from a saved snapshot. Bump
-  `APK_CACHE_VERSION` in the workflow after changing how the APK is built.
+  pull request. To keep it fast it reuses the last APK when nothing in it changed, restores the native build output
+  and Gradle caches, skips R8 minifying, and boots each emulator from a saved snapshot of Google's slimmed-down
+  `aosp_atd` test image. A build-only run on `main` fills the caches. Bump `APK_CACHE_VERSION` in the workflow after
+  changing how the APK is built.
 - `e2e-ios.yml`: builds for the iOS simulator and runs the flows, on pushes to `main` and on demand (macOS runners are
   slower and cost more).
 
