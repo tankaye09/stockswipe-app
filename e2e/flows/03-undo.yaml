@@ -1,0 +1,11 @@
+appId: com.stockswipe.app
+name: Undo takes a save back
+---
+- runFlow: ../subflows/onboard.yaml
+- tapOn:
+    id: 'right-button'
+- tapOn:
+    id: 'undo-button'
+- tapOn: 'Watchlist'
+- assertVisible:
+    id: 'watchlist-empty'

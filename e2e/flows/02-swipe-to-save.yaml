@@ -1,0 +1,14 @@
+appId: com.stockswipe.app
+name: Swiping right saves to the watchlist
+---
+- runFlow: ../subflows/onboard.yaml
+- swipe:
+    from:
+      id: 'deck'
+    direction: RIGHT
+- assertVisible: 'Saved .* to your watchlist'
+- tapOn: 'Watchlist'
+- assertVisible:
+    id: 'watchlist'
+- assertNotVisible:
+    id: 'watchlist-empty'
