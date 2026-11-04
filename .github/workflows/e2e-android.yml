@@ -16,7 +16,7 @@ env:
   # Keep the undo toast up long enough for a slow emulator to tap it.
   EXPO_PUBLIC_UNDO_MS: '20000'
   # Bump to throw away the cached APK, e.g. after changing how it is built.
-  APK_CACHE_VERSION: '2'
+  APK_CACHE_VERSION: '3'
 
 jobs:
   build:
@@ -129,13 +129,16 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      # The emulator image needs more disk than the runner has free by default.
+      # The emulator image needs more disk than the runner has free by default. Deleting takes up
+      # to 40s, so it runs in the background while the next steps go on.
       - name: Free disk space
-        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+        run: nohup sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL >/dev/null 2>&1 &
 
       # A saved emulator snapshot boots in seconds instead of a minute-long cold boot.
       # aosp_atd is Google's slimmed-down image for automated tests: no Play services or
       # preinstalled apps keeping the CPU busy, so the app starts faster.
+      # The system image and emulator are cached with it: restoring them is faster than the
+      # 90s download, and the snapshot only loads in the emulator version that saved it.
       - name: Restore the emulator snapshot
         id: avd
         uses: actions/cache@v4
@@ -143,7 +146,9 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-34-aosp_atd-x86_64-2cores-3072M-settled
+            /usr/local/lib/android/sdk/system-images/android-34/aosp_atd
+            /usr/local/lib/android/sdk/emulator
+          key: avd-34-aosp_atd-x86_64-2cores-3072M-settled-with-image
 
       - name: Create the emulator snapshot
         if: steps.avd.outputs.cache-hit != 'true'
