@@ -2,10 +2,11 @@ appId: com.stockswipe.app
 name: Swiping right saves to the watchlist
 ---
 - runFlow: ../subflows/onboard.yaml
+# A long, quick drag across the card, well past the swipe threshold.
 - swipe:
-    from:
-      id: 'deck'
-    direction: RIGHT
+    start: '15%, 45%'
+    end: '95%, 45%'
+    duration: 300
 - tapOn: 'Watchlist'
 - assertVisible:
     id: 'watchlist'
