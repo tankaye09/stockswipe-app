@@ -50,10 +50,19 @@ it('keeps saved values when the store has no answer or is offline', async () => 
   await new Promise((r) => setTimeout(r, 10));
   expect(await persisted()).toMatchObject({ premium: true, remoteLimits: { freeDays: 2 } });
 
-  setPurchases(fake({ isPremium: () => Promise.reject(new Error('offline')), getRemoteLimits: async () => null }));
+  setPurchases({
+    ...fake({ isPremium: () => Promise.reject(new Error('x')), getRemoteLimits: async () => null }),
+    isTest: true,
+  });
   await renderWithState(ui(), { premium: true, remoteLimits: { freeDays: 2 } });
   await new Promise((r) => setTimeout(r, 10));
   expect(await persisted()).toMatchObject({ premium: true, remoteLimits: { freeDays: 2 } });
+});
+
+it('never trusts a saved Premium flag when the real store cannot confirm it', async () => {
+  setPurchases(fake({ isPremium: () => Promise.reject(new Error('no store')) }));
+  await renderWithState(ui(), { premium: true });
+  await waitFor(async () => expect((await persisted()).premium).toBe(false));
 });
 
 it('ignores answers that arrive after unmount', async () => {
