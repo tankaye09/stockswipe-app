@@ -88,7 +88,7 @@ jobs:
           ram-size: 3072M
           script: |
             adb install "${{ runner.temp }}/apk/app-release.apk"
-            maestro test "e2e/flows/${{ matrix.flow }}.yaml" --format junit --output "e2e-${{ matrix.flow }}.xml"
+            e2e/scripts/run-flow.sh "${{ matrix.flow }}"
 
       - uses: actions/upload-artifact@v4
         if: always()
