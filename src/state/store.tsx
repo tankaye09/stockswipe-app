@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useMemo, useReducer } from
 import type { Currency, Market, StockId, Theme } from '../data/types';
 import type { BrokerId } from '../broker/brokers';
 import { NO_FILTERS, type FeedFilters } from '../feed/feedEngine';
+import { parseSavedState } from './persist';
 import { applyPaperTrade, isoDate, SEEN_MEMORY, STARTING_CASH_USD, type TradeSide } from './rules';
 import type { AppState, SwipeMode } from './types';
 
@@ -99,7 +100,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
-      .then((raw) => dispatch({ type: 'hydrate', state: raw ? JSON.parse(raw) : {} }))
+      .then((raw) => dispatch({ type: 'hydrate', state: parseSavedState(raw) }))
       .catch(() => dispatch({ type: 'hydrate', state: {} }));
   }, []);
 
