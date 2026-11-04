@@ -1,13 +1,13 @@
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import { BROKERS } from '../../../broker/brokers';
-import { Button, Chip, Row, SectionTitle } from '../../../components/ui';
-import type { Market, Theme } from '../../../data/types';
-import { ALL_THEMES, THEME_EMOJI, THEME_LABELS } from '../../../feed/themes';
-import { FREE_DAILY_SWIPES, FREE_DAYS } from '../../../state/rules';
-import { useAppState } from '../../../state/store';
-import { colors, space } from '../../../theme';
+import { BROKERS } from '../../broker/brokers';
+import { Button, Chip, Row, SectionTitle } from '../../components/ui';
+import type { Market, Theme } from '../../data/types';
+import { ALL_THEMES, THEME_EMOJI, THEME_LABELS } from '../../feed/themes';
+import { FREE_DAILY_SWIPES, FREE_DAYS } from '../../state/rules';
+import { useAppState } from '../../state/store';
+import { colors, space } from '../../theme';
 
 const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 

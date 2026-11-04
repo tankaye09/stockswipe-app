@@ -1,15 +1,19 @@
 import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
 import type { ColorValue } from 'react-native';
-import { TabIcon } from '../../components/TabIcon';
-import { TABS } from '../../navigation/tabs';
+import { TabIcon, type TabIconName } from '../../components/TabIcon';
 import { useAppState } from '../../state/store';
 import { colors } from '../../theme';
 
-/**
- * Android (and web) tab bar. iOS uses the native Liquid Glass bar in
- * `_layout.ios.tsx`. Each tab with a title nests its own Stack for the header.
- */
+/** Tab options shared by every tab: its icon and a testID for e2e flows. */
+const tab = (title: string, iconName: TabIconName) => ({
+  title,
+  tabBarButtonTestID: `tab-${iconName}`,
+  tabBarIcon: ({ color, focused }: { color: ColorValue; focused: boolean }) => (
+    <TabIcon name={iconName} color={color} focused={focused} />
+  ),
+});
+
 export default function TabsLayout() {
   const { state } = useAppState();
 
@@ -18,26 +22,18 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerStyle: { backgroundColor: colors.bg },
+        headerTintColor: colors.text,
         tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textFaint,
         sceneStyle: { backgroundColor: colors.bg },
       }}
     >
-      {TABS.map((tab) => (
-        <Tabs.Screen
-          key={tab.name}
-          name={tab.name}
-          options={{
-            title: tab.label,
-            tabBarButtonTestID: `tab-${tab.name}`,
-            tabBarIcon: ({ color, focused }: { color: ColorValue; focused: boolean }) => (
-              <TabIcon name={tab.icon} color={color} focused={focused} />
-            ),
-          }}
-        />
-      ))}
+      <Tabs.Screen name="index" options={{ ...tab('Discover', 'discover'), headerShown: false }} />
+      <Tabs.Screen name="watchlist" options={tab('Watchlist', 'watchlist')} />
+      <Tabs.Screen name="portfolio" options={tab('Paper', 'paper')} />
+      <Tabs.Screen name="settings" options={tab('Settings', 'settings')} />
     </Tabs>
   );
 }
