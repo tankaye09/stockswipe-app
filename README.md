@@ -35,12 +35,12 @@ All settings live in `src/monetization/config.ts` and come from `EXPO_PUBLIC_*` 
 none of them need code changes. Without any of them set, the app runs in test mode: purchases are simulated and free,
 and the ad card promotes Premium instead of showing a real ad.
 
-| Feature          | How it works                                                                                                                        |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Free tier        | Unlimited swipes for 7 days, then 50 a day. Counted per device.                                                                     |
-| Premium          | Unlimited swipes, no ads. Monthly and yearly plans through RevenueCat, which handles the App Store and Google Play with one API.    |
-| Ads              | A card every 10 stock swipes for free users: a 300x250 AdMob ad, or a Premium card if no ad loads. Ads never change the stock feed. |
-| Broker referrals | Users without a broker see “Open an account” links in Settings, with a referral-fee disclosure.                                     |
+| Feature          | How it works                                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free tier        | Unlimited swipes for 7 days, then 50 a day. Counted per device.                                                                                                                 |
+| Premium          | Unlimited swipes, no ads. Monthly and yearly plans through RevenueCat, which handles the App Store and Google Play with one API.                                                |
+| Ads              | A card every 10 stock swipes for free users: a 300x250 AdMob ad, or a Premium card if no ad loads. Non-personalised only (no tracking prompt). Ads never change the stock feed. |
+| Broker referrals | Users without a broker see “Open an account” links in Settings, with a referral-fee disclosure.                                                                                 |
 
 ### Changing the limits for everyone (no app update)
 

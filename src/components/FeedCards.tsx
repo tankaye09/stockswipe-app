@@ -28,7 +28,7 @@ export function AdCard({
         <sdk.BannerAd
           unitId={unitId}
           size={sdk.BannerAdSize.MEDIUM_RECTANGLE}
-          requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+          requestOptions={{ requestNonPersonalizedAdsOnly: ADS.nonPersonalisedOnly }}
           onAdFailedToLoad={() => setFailed(true)}
         />
       ) : (

@@ -30,8 +30,7 @@
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511",
-          "delayAppMeasurementInit": true,
-          "userTrackingUsageDescription": "This lets us show ads that are more relevant to you. Premium has no ads."
+          "delayAppMeasurementInit": true
         }
       ]
     ],

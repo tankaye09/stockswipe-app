@@ -84,6 +84,12 @@ export const PREMIUM = {
 
 export const ADS = {
   /**
+   * Ads are non-personalised only (Kaye's call, 4 Nov 2026): no tracking, so no
+   * iOS tracking prompt and lighter PDPA consent. Turning this off would need an
+   * App Tracking Transparency prompt and a consent review first.
+   */
+  nonPersonalisedOnly: true,
+  /**
    * AdMob ad unit for the in-feed card (a 300x250 banner). Each store app has
    * its own unit. Unset means a house card promoting Premium is shown instead.
    */

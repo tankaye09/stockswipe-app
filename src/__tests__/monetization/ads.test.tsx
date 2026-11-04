@@ -19,9 +19,10 @@ function fakeSdk(canRequestAds = true): AdMobSdk & { initialize: jest.Mock } {
     initialize,
     mobileAds: () => ({ initialize }),
     AdsConsent: { gatherConsent: jest.fn(async () => ({ canRequestAds })) },
-    BannerAd: ({ unitId, size, onAdFailedToLoad }) => {
+    BannerAd: ({ unitId, size, requestOptions, onAdFailedToLoad }) => {
       failLoad = () => onAdFailedToLoad?.(new Error('no fill'));
-      return <Text testID="banner">{`${unitId} ${size}`}</Text>;
+      const npa = requestOptions?.requestNonPersonalizedAdsOnly ? 'npa' : 'personalised';
+      return <Text testID="banner">{`${unitId} ${size} ${npa}`}</Text>;
     },
     BannerAdSize: { MEDIUM_RECTANGLE: 'MEDIUM_RECTANGLE' },
   };
@@ -70,10 +71,10 @@ describe('initAds', () => {
 });
 
 describe('AdCard with AdMob', () => {
-  it('shows a medium rectangle ad, with a link to remove ads', async () => {
+  it('shows a non-personalised medium rectangle ad, with a link to remove ads', async () => {
     const onRemoveAds = jest.fn();
     await render(<AdCard onRemoveAds={onRemoveAds} unitId="unit-1" sdk={fakeSdk()} />);
-    expect(screen.getByTestId('banner')).toHaveTextContent('unit-1 MEDIUM_RECTANGLE');
+    expect(screen.getByTestId('banner')).toHaveTextContent('unit-1 MEDIUM_RECTANGLE npa');
     await userEvent.setup().press(screen.getByText('Remove ads'));
     expect(onRemoveAds).toHaveBeenCalled();
   });
