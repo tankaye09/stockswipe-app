@@ -1,0 +1,13 @@
+appId: com.stockswipe.app
+name: Deep links open a stock, and a malformed one shows not found instead of crashing
+---
+- runFlow: ../subflows/onboard.yaml
+- openLink: 'stockswipe://stock/US%3AAAPL'
+- assertVisible:
+    id: 'stock-screen'
+- assertVisible: 'In plain English'
+# A broken escape sequence used to crash the stock screen on decode.
+- openLink: 'stockswipe://stock/%E0%A4%A'
+- assertVisible: 'Stock not found.'
+- openLink: 'stockswipe://stock/US%3A..%2F..%2Fsecret'
+- assertVisible: 'Stock not found.'

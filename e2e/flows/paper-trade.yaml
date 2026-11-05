@@ -11,7 +11,9 @@ name: Paper buy shows up in the paper portfolio
     element:
       id: 'paper-buy'
     direction: DOWN
-    centerElement: true
+    # The panel sits near the end of the page, so it can't be scrolled to the
+    # centre. Ask for the whole button to be on screen instead.
+    visibilityPercentage: 100
 - waitForAnimationToEnd
 - tapOn:
     id: 'paper-buy'
