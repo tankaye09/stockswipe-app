@@ -82,7 +82,8 @@ Principles:
 - `ci.yml`: typecheck, lint, format check and unit tests with coverage, on every push and pull request.
 - `e2e-android.yml`: builds a release APK once, then runs every flow in parallel, each on its own emulator, on every
   pull request.
-- `e2e-ios.yml`: builds for the iOS simulator and runs the flows, on pushes to `main` and on demand (macOS runners are
+- `e2e-ios.yml`: builds for the iOS simulator on macOS 26 (Expo SDK 58 needs Xcode 26) and runs the flows one after
+  another on one simulator, on pushes to `main` and on demand (macOS runners are
   slower and cost more).
 
 ## Before launch

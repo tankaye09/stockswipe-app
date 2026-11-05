@@ -47,11 +47,21 @@ jobs:
           xcrun simctl boot "$UDID"
           xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Swipe.app
 
+      # One simulator, so flows run one after another. Each flow starts from a
+      # fresh install, and one failure doesn't stop the rest.
       - name: Run flows
-        run: maestro test e2e/flows --format junit --output e2e-report.xml
+        run: |
+          failed=""
+          for f in e2e/flows/*.yaml; do
+            name=$(basename "$f" .yaml)
+            e2e/scripts/run-flow.sh "$name" || failed="$failed $name"
+          done
+          if [ -n "$failed" ]; then echo "::error::Failed flows:$failed"; exit 1; fi
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: e2e-ios-report
-          path: e2e-report.xml
+          path: |
+            e2e-*.xml
+            ~/.maestro/tests/
