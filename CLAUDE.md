@@ -38,12 +38,16 @@ Native builds and e2e flows run in CI; this container can't run simulators.
 
 ## CI and e2e
 
-- `ci.yml`: typecheck, lint, format, unit tests with coverage on every push and PR.
-- `e2e-android.yml`: builds a release APK on every PR and runs the Maestro flows on an emulator. With #4 the APK is built
-  once and each flow runs in its own job. With #6 the APK, Gradle, native build output and the `aosp_atd` emulator
+- The repo is private and has hit its Actions budget before (4 Nov 2026). Don't trigger workflows by hand to iterate
+  (`workflow_dispatch`, especially iOS at ~10x the price); push fewer, larger commits; mark PRs as drafts while
+  iterating, since e2e skips drafts.
+- `ci.yml`: typecheck, lint, format, unit tests with coverage on every push and PR (Markdown-only changes skip it).
+- `e2e-android.yml`: builds a release APK on non-draft PRs that touch the app or flows and runs the Maestro flows. The
+  APK is built once (#4) and the flows are split across `E2E_SHARDS` emulators, not one job per flow, because each
+  emulator costs minutes to start (#17). With #6 the APK, Gradle, native build output and the `aosp_atd` emulator
   snapshot are cached, and a build-only run on `main` keeps the caches warm for PRs. Bump `APK_CACHE_VERSION` if you
   change how the APK is built, and `NATIVE_CACHE_VERSION` if you change Gradle or NDK settings.
-- `e2e-ios.yml`: runs on pushes to `main` and on demand (macOS minutes are costly). Expo SDK 58 needs **Xcode 26**
+- `e2e-ios.yml`: runs nightly (only if `main` changed) and on demand (macOS minutes are costly). Expo SDK 58 needs **Xcode 26**
   (`expo-modules-jsi` uses Swift tools 6.2), so the job must use the `macos-26` runner (#5). Keep `set -o pipefail` on
   piped build steps so a failed `xcodebuild` fails its own step.
 - The e2e workflows set `EXPO_PUBLIC_UNDO_MS=20000` so slow emulators can tap Undo, and (with #7)

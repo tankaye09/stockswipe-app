@@ -1,8 +1,19 @@
 name: E2E (Android)
 
+# Runner minutes cost money on a private repo, so pull requests only run this when the app or the flows change,
+# and not while they are drafts. Run it by hand from the Actions tab (workflow_dispatch) any time.
 on:
   pull_request:
-    paths-ignore: ['**.md']
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'e2e/**'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - '.github/workflows/e2e-android.yml'
   # On main only the build runs, to fill the caches every pull request starts from.
   push:
     branches: [main]
@@ -19,19 +30,26 @@ env:
   APK_CACHE_VERSION: '4'
   # Bump to throw away the cached native build output, e.g. after changing Gradle or NDK settings.
   NATIVE_CACHE_VERSION: '3'
+  # Flows are split across this many emulators. Each emulator costs a few minutes to start, so a
+  # few shards are much cheaper than one job per flow and still finish in about the same time.
+  E2E_SHARDS: '2'
 
 jobs:
   build:
     name: Build release APK
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     outputs:
-      flows: ${{ steps.flows.outputs.flows }}
+      shards: ${{ steps.shards.outputs.shards }}
     steps:
       - uses: actions/checkout@v4
-      - name: List flows
-        id: flows
-        run: echo "flows=$(ls e2e/flows/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+      # Deals the flows out to E2E_SHARDS groups, e.g. ["deep-link onboarding ...", "filters paper-trade ..."].
+      - name: Split flows into shards
+        id: shards
+        run: |
+          echo "shards=$(ls e2e/flows/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' \
+            | jq -R -s -c --argjson n "$E2E_SHARDS" 'split("\n")[:-1] | to_entries | group_by(.key % $n) | map(map(.value) | join(" "))')" >> "$GITHUB_OUTPUT"
 
       # Reuse the last APK when nothing that goes into it has changed, e.g. when only flows or docs changed.
       - name: Restore a matching APK
@@ -102,9 +120,10 @@ jobs:
           retention-days: 3
 
   flow:
-    # Each flow gets its own runner and a fresh emulator, so flows run in
-    # parallel and can't affect each other.
-    name: ${{ matrix.flow }}
+    # Each shard gets its own runner and emulator, so shards run in parallel. Within a shard, flows
+    # run one after another, and each starts by clearing the app's data (e2e/subflows/onboard.yaml),
+    # so no flow depends on another or on the order they run in.
+    name: flows ${{ strategy.job-index }}
     needs: build
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
@@ -112,7 +131,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flow: ${{ fromJSON(needs.build.outputs.flows) }}
+        flows: ${{ fromJSON(needs.build.outputs.shards) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -168,7 +187,7 @@ jobs:
           # finish before saving, so every flow starts on an idle emulator.
           script: sleep 90 && echo "Saved an emulator snapshot."
 
-      - name: Run ${{ matrix.flow }}
+      - name: Run ${{ matrix.flows }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -182,12 +201,12 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
             adb install "${{ runner.temp }}/apk/app-release.apk"
-            e2e/scripts/run-flow.sh "${{ matrix.flow }}"
+            failed=""; for f in ${{ matrix.flows }}; do e2e/scripts/run-flow.sh "$f" || failed="$failed $f"; done; if [ -n "$failed" ]; then echo "::error::Failed flows:$failed"; exit 1; fi
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-android-${{ matrix.flow }}
+          name: e2e-android-${{ strategy.job-index }}
           path: |
-            e2e-${{ matrix.flow }}.xml
+            e2e-*.xml
             ~/.maestro/tests/
