@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths-ignore: ['**.md']
+  # Every pull request runs this (even docs-only ones), because it is a required check.
   pull_request:
-    paths-ignore: ['**.md']
 
 concurrency:
   group: ci-${{ github.ref }}
