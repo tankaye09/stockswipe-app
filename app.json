@@ -3,6 +3,12 @@
     "name": "Swipe",
     "slug": "stockswipe-app",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "checkAutomatically": "ON_ERROR_RECOVERY"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",

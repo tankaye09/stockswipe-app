@@ -1,0 +1,62 @@
+name: Preview
+
+# Publishes each pull request's JS as an EAS Update and comments a QR code on the PR. Scan it with
+# the camera on a phone that has the Swipe development build installed to try the change in seconds,
+# without a new build. Needs the EXPO_TOKEN secret and an Expo project ID in app.json (`eas init`);
+# until both exist this skips. Changes to native code (new native packages, app.json plugins) need a
+# new development build instead (the "Development build" workflow).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Preview updates are for us, never the stores, so the admin page is on.
+  EXPO_PUBLIC_ADMIN_TOOLS: '1'
+
+jobs:
+  update:
+    name: Publish a preview update
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check Expo is set up
+        id: ready
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ] || ! grep -q '"projectId"' app.json; then
+            echo "No EXPO_TOKEN secret or Expo project ID yet, so no preview. See CLAUDE.md."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v7
+        if: steps.ready.outputs.ok == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - uses: expo/expo-github-action@v8
+        if: steps.ready.outputs.ok == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+        if: steps.ready.outputs.ok == 'true'
+      - name: Publish and comment a QR code
+        if: steps.ready.outputs.ok == 'true'
+        uses: expo/expo-github-action/preview@v8
+        with:
+          command: eas update --auto

@@ -1,0 +1,36 @@
+name: Development build
+
+# Starts a development build on Expo's build servers (not GitHub's runners) and returns straight away.
+# Install it on your phone from the link Expo emails, or from expo.dev > Builds. You only need a new one
+# when native code changes (a new native package, or app.json plugins). Day to day, PR previews load into it.
+# Android builds an APK you can install directly. iPhone needs a paid Apple Developer account and the
+# phone registered once with `eas device:create`, and the first iOS build run on a computer with
+# `npx eas-cli@latest build --profile development --platform ios` so it can sign in to Apple.
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Which phone
+        type: choice
+        options: [android, ios, all]
+        default: android
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Start a development build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - run: eas build --profile development --platform ${{ inputs.platform }} --non-interactive --no-wait

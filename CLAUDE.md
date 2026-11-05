@@ -56,6 +56,11 @@ Native builds and e2e flows run in CI; this container can't run simulators.
   changes), and on demand. If it goes red on `main`, fix it before merging more app changes. Expo SDK 58 needs **Xcode 26**
   (`expo-modules-jsi` uses Swift tools 6.2), so the job must use the `macos-26` runner (#5). Keep `set -o pipefail` on
   piped build steps so a failed `xcodebuild` fails its own step.
+- Phone previews: `preview.yml` publishes each PR as an EAS Update and comments a QR code to open it in the Swipe
+  development build (`eas.json` profile `development`, built on demand by `dev-build.yml`). It skips until the
+  `EXPO_TOKEN` secret and the Expo project ID in `app.json` exist. Native changes need a new development build.
+  `updates.checkAutomatically` is `ON_ERROR_RECOVERY` so release and e2e builds never fetch updates on launch;
+  revisit before shipping OTA updates to the stores.
 - The e2e workflows set `EXPO_PUBLIC_UNDO_MS=20000` so slow emulators can tap Undo, and (with #7)
   `EXPO_PUBLIC_ADMIN_TOOLS=1` so flows can use the admin page.
 
