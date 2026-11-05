@@ -9,6 +9,9 @@
       "channel": "development",
       "env": {
         "EXPO_PUBLIC_ADMIN_TOOLS": "1"
+      },
+      "android": {
+        "withoutCredentials": true
       }
     }
   }
