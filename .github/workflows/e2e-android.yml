@@ -15,18 +15,17 @@ env:
   EXPO_PUBLIC_ADMIN_TOOLS: '1'
 
 jobs:
-  maestro:
-    name: Maestro flows on an Android emulator
+  build:
+    name: Build release APK
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
+    outputs:
+      flows: ${{ steps.flows.outputs.flows }}
     steps:
-      # The release build plus the emulator image overflow the runner's disk, so clear tools we don't use.
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL /usr/local/lib/node_modules
-          sudo docker image prune --all --force
-          df -h /
       - uses: actions/checkout@v4
+      - name: List flows
+        id: flows
+        run: echo "flows=$(ls e2e/flows/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -36,19 +35,34 @@ jobs:
           distribution: temurin
           java-version: 17
       - run: npm ci
-
       - name: Generate the native Android project
         run: npx expo prebuild --platform android --no-install
-
       - name: Build a release APK (JS bundled in, no dev server needed)
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 3
 
-      - name: Keep the APK and drop build leftovers
-        run: |
-          cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/app-release.apk"
-          rm -rf android ~/.gradle/caches
-          df -h /
+  flow:
+    # Each flow gets its own runner and a fresh emulator, so flows run in
+    # parallel and can't affect each other.
+    name: ${{ matrix.flow }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        flow: ${{ fromJSON(needs.build.outputs.flows) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-release-apk
+          path: ${{ runner.temp }}/apk
 
       - name: Install Maestro
         run: |
@@ -61,7 +75,11 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run flows
+      # The emulator image needs more disk than the runner has free by default.
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+
+      - name: Run ${{ matrix.flow }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -71,13 +89,13 @@ jobs:
           cores: 2
           ram-size: 3072M
           script: |
-            adb install "$RUNNER_TEMP/app-release.apk"
-            maestro test e2e/flows --format junit --output e2e-report.xml || { node e2e/scripts/summarize-failures.js; adb logcat -d -s ReactNativeJS:V AndroidRuntime:E | tail -n 100; exit 1; }
+            adb install "${{ runner.temp }}/apk/app-release.apk"
+            e2e/scripts/run-flow.sh "${{ matrix.flow }}"
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-android-report
+          name: e2e-android-${{ matrix.flow }}
           path: |
-            e2e-report.xml
+            e2e-${{ matrix.flow }}.xml
             ~/.maestro/tests/

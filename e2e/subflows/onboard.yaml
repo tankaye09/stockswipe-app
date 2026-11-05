@@ -1,6 +1,9 @@
-# Fresh install: pick interests and land on the swipe feed.
+# Every flow starts here, from a fresh install: no saved state, watchlist or
+# paper trades carry over from another flow, so flows can run in any order or
+# in parallel on separate devices.
 appId: com.stockswipe.app
 ---
+- stopApp
 - launchApp:
     clearState: true
 # A cold start on a CI emulator can take well over the default wait.

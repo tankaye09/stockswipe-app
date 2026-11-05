@@ -2,7 +2,8 @@
 # Pass FREE_DAYS, DAILY_SWIPES and AD_EVERY as env.
 appId: com.stockswipe.app
 ---
-- tapOn: 'Settings'
+- tapOn:
+    id: 'tab-settings'
 - scrollUntilVisible:
     element:
       id: 'open-admin'
@@ -37,6 +38,7 @@ appId: com.stockswipe.app
     centerElement: true
 - tapOn:
     id: 'admin-done'
-- tapOn: 'Discover'
+- tapOn:
+    id: 'tab-discover'
 - assertVisible:
     id: 'deck'

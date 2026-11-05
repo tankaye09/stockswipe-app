@@ -48,5 +48,5 @@ Docs: https://docs.expo.dev/eas/index.md
 - Tests live in `src/__tests__/` (never in `src/app/`, where every file is a route). `src/test-utils.tsx` renders with app state.
 - React Native Testing Library v14: `render`, `fireEvent` and `userEvent` calls are async and must be awaited.
 - Before finishing: `npm run typecheck`, `npx eslint . --max-warnings 0`, `npm run format:check`, `npm run test:coverage`.
-- Add a Maestro flow in `e2e/flows` for any new user journey, and use `testID`s for anything a flow taps.
+- Add a Maestro flow in `e2e/flows` for any new user journey, and use `testID`s for anything a flow taps. Start every flow with `runFlow: ../subflows/onboard.yaml` so it begins from a fresh install and never relies on another flow.
 - No buy/sell language anywhere in the UI. Cards explain; they do not recommend.

@@ -2,7 +2,8 @@ appId: com.stockswipe.app
 name: Subscribing to Premium from Settings (test purchases)
 ---
 - runFlow: ../subflows/onboard.yaml
-- tapOn: 'Settings'
+- tapOn:
+    id: 'tab-settings'
 - scrollUntilVisible:
     element:
       id: 'see-premium'

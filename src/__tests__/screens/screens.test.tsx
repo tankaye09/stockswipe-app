@@ -234,4 +234,13 @@ describe('Stock detail', () => {
     await renderWithState(<StockScreen />);
     expect(await screen.findByText('Stock not found.')).toBeOnTheScreen();
   });
+
+  it.each([['%E0%A4%A'], ['javascript:alert(1)'], ['US:../../etc'], [undefined]])(
+    'shows not found for a malformed deep link id (%s)',
+    async (id) => {
+      params.mockReturnValue({ id });
+      await renderWithState(<StockScreen />);
+      expect(await screen.findByText('Stock not found.')).toBeOnTheScreen();
+    },
+  );
 });

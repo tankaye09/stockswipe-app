@@ -2,7 +2,8 @@ appId: com.stockswipe.app
 name: Users without a broker see sign-up links with a referral disclosure
 ---
 - runFlow: ../subflows/onboard.yaml
-- tapOn: 'Settings'
+- tapOn:
+    id: 'tab-settings'
 - assertVisible:
     id: 'signup-moomoo'
 - assertVisible:
