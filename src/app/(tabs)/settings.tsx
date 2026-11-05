@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { BROKERS, openBrokerSignUp } from '../../broker/brokers';
 import { Button, Chip, Row, SectionTitle } from '../../components/ui';
+import { DATA_NOTE } from '../../data';
 import type { Market, Theme } from '../../data/types';
 import { ALL_THEMES, THEME_EMOJI, THEME_LABELS } from '../../feed/themes';
 import { ADMIN_TOOLS } from '../../monetization/config';
@@ -131,7 +132,7 @@ export default function SettingsScreen() {
       <SectionTitle>About</SectionTitle>
       <Text style={styles.note}>
         Swipe shows information for learning and discovery. It is not financial advice and does not recommend buying or
-        selling any stock. Prices shown are sample data.
+        selling any stock. {DATA_NOTE}
       </Text>
       <Button
         testID="reset-all"

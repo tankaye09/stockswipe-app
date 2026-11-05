@@ -53,10 +53,14 @@ export function StockCard({ item }: { item: FeedItem }) {
       <Text style={styles.body} numberOfLines={3}>
         {s.breakdown.whatTheyDo}
       </Text>
-      <Text style={styles.label}>Why people watch it</Text>
-      <Text style={styles.body} numberOfLines={2}>
-        {s.breakdown.whyPeopleWatch}
-      </Text>
+      {s.breakdown.whyPeopleWatch ? (
+        <>
+          <Text style={styles.label}>Why people watch it</Text>
+          <Text style={styles.body} numberOfLines={2}>
+            {s.breakdown.whyPeopleWatch}
+          </Text>
+        </>
+      ) : null}
 
       <Text style={styles.more}>Tap for the full breakdown</Text>
     </View>
