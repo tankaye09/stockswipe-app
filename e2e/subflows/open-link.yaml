@@ -1,8 +1,8 @@
 # Opens a deep link the same way on both platforms. iOS first asks
 # 'Open in "Swipe"?' for a link from outside the app, and if nobody answers, the
-# dialog stays up over every later flow. On a CI simulator the prompt can show
-# up later than one optional tap waits, and iOS doesn't always ask (it may
-# remember the answer), so iOS tries the tap a few times and never fails on it.
+# dialog stays up over every later flow. On a CI simulator the prompt can take
+# 20 seconds or more to show up, and iOS doesn't always ask (it may remember the
+# answer), so iOS waits for it without failing and taps Open if it came.
 # Android opens the link directly. Usage: runFlow with env LINK.
 appId: com.stockswipe.app
 ---
@@ -11,9 +11,10 @@ appId: com.stockswipe.app
     when:
       platform: iOS
     commands:
-      - repeat:
-          times: 3
-          commands:
-            - tapOn:
-                text: 'Open'
-                optional: true
+      - extendedWaitUntil:
+          visible: 'Open in .Swipe.\?'
+          timeout: 40000
+          optional: true
+      - tapOn:
+          text: 'Open'
+          optional: true
