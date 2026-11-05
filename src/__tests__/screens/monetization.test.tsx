@@ -205,6 +205,23 @@ describe('Admin page', () => {
     expect(screen.getByTestId('admin-usage')).toHaveTextContent('12 swipes left today.');
   });
 
+  it('fills the fields from a link, and saves only when asked', async () => {
+    params.mockReturnValue({ freeDays: '0', dailySwipes: '2', adEvery: ['x'] });
+    await renderWithState(<AdminScreen />);
+    expect(screen.getByTestId('admin-free-days').props.value).toBe('0');
+    expect(screen.getByTestId('admin-daily-swipes').props.value).toBe('2');
+    expect(screen.getByTestId('admin-ad-every').props.value).toBe(String(DEFAULT_LIMITS.adEvery));
+    expect((await persisted()).limitOverride ?? null).toBeNull();
+    await user().press(screen.getByTestId('admin-save'));
+    await waitFor(async () =>
+      expect((await persisted()).limitOverride).toEqual({
+        freeDays: 0,
+        dailySwipes: 2,
+        adEvery: DEFAULT_LIMITS.adEvery,
+      }),
+    );
+  });
+
   it('clears the override back to the dashboard values', async () => {
     await renderWithState(<AdminScreen />, { remoteLimits: { dailySwipes: 30 }, limitOverride: { dailySwipes: 3 } });
     await user().press(screen.getByTestId('admin-clear'));
