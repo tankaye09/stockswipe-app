@@ -36,6 +36,16 @@ describe('StockCard', () => {
   });
 });
 
+describe('StockCard without a full breakdown', () => {
+  it('hides the parts a real stock does not have yet', async () => {
+    const base = sample('AAPL');
+    const stock = { ...base, breakdown: { ...base.breakdown, whyPeopleWatch: '' } };
+    await render(<StockCard item={{ id: idOf('AAPL'), stock, bucket: 'wildcard', reason: 'x' }} />);
+    expect(screen.getByText(stock.breakdown.oneLiner)).toBeOnTheScreen();
+    expect(screen.queryByText('Why people watch it')).not.toBeOnTheScreen();
+  });
+});
+
 describe('PriceChart', () => {
   it('draws nothing for too few points', async () => {
     await render(<PriceChart points={[{ date: '2026-01-01', close: 1 }]} width={100} height={50} />);

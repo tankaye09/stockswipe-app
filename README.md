@@ -79,7 +79,7 @@ Purchases and AdMob need a development build (`npx expo run:ios|android`); Expo 
 src/
   app/          Screens. Every file is a route (Expo Router). Keep logic out of here.
   components/   Reusable UI and small hooks.
-  data/         Market data types and the provider interface. mock/ holds sample data.
+  data/         Market data types and the provider interface. mock/ holds sample data, live/ reads our database.
   feed/         Feed rules (pure functions) and the hook that runs the card queue.
   state/        App state (reducer + provider, saved on device) and business rules.
   broker/       Links out to the user's broker, and referral sign-up links.
@@ -87,6 +87,8 @@ src/
   theme/        Colours, spacing, number formatting.
   __tests__/    Unit and component tests, mirroring the folders above.
 e2e/            Maestro end-to-end flows for iOS and Android.
+jobs/sync/      Daily job that loads every US and SGX stock into the database (see Real stock data).
+supabase/       Database tables (SQL migrations) and setup steps.
 ```
 
 Principles:
@@ -125,6 +127,20 @@ Principles:
     and run `npm run e2e:parallel`.
   - To run locally, build and install the app (`npx expo run:ios` or `npx expo run:android`) and install Maestro.
 
+## Real stock data
+
+The app shows sample data unless a build sets `EXPO_PUBLIC_DATA_SOURCE=live` with the Supabase URL and public read-only
+key (`.env.example`). Live data comes from our own Supabase database, never straight from a data vendor:
+
+- `jobs/sync` runs daily from `.github/workflows/sync-stocks.yml` (US at 7am SGT, SGX at 7pm SGT). It downloads the
+  Nasdaq and SGX ticker lists, quotes every stock on Yahoo Finance in batches, and fills in company profiles and a year
+  of daily closes a few hundred stocks per run. It's the same sources as the QF screener.
+- The app reads with `SupabaseProvider` (`src/data/live`). Unit tests and e2e flows always use sample data.
+- **For private testing only.** Yahoo, Nasdaq and SGX data aren't licensed for a public app. Before a store release,
+  switch the job to a licensed vendor (see the data plan). Never commit stock data to this public repo.
+
+Setup steps are in [supabase/README.md](supabase/README.md).
+
 ## CI
 
 The repo is private, so every runner minute counts against the GitHub Actions budget (macOS minutes cost about 10
@@ -137,12 +153,13 @@ times Linux minutes). The workflows only run when they need to:
   and Gradle caches, skips R8 minifying, and boots each emulator from a saved snapshot of Google's slimmed-down
   `aosp_atd` test image. A build-only run on `main` fills the caches. Bump `APK_CACHE_VERSION` in the workflow after
   changing how the APK is built.
+- `sync-stocks.yml`: the daily stock data sync (above). Skips until the Supabase secrets are set.
 - `e2e-ios.yml`: builds for the iOS simulator on macOS 26 (Expo SDK 58 needs Xcode 26) and runs the flows one after
   another on one simulator, nightly if `main` changed that day, and on demand.
 
 ## Before launch
 
-- Choose a market data provider and licence (US and SGX), then replace the mock provider.
+- Choose a licensed market data provider (US and SGX) and point the sync job at it instead of Yahoo, Nasdaq and SGX.
 - Confirm broker deep links with moomoo, Tiger and IBKR, and join their referral programmes.
 - Set up RevenueCat, store subscriptions and AdMob (see Revenue above).
 - Generate the AI breakdowns from real filings and news (the sample text is hand-written).

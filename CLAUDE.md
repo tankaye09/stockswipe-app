@@ -11,8 +11,9 @@ changes.
 Swipe (working name): a swipe feed of stocks for iOS and Android, built with Expo (React Native + TypeScript) and Expo
 Router. Cards explain a company in plain English with a chart and key stats. Right-swipe saves to the watchlist (or, in
 Trade mode, hands off to the user's broker), left-swipe skips, and there is paper trading. Markets are US and SGX, US
-first. Everything runs on sample data in `src/data/mock` until a market data provider is chosen. There is no real
-trading in the app. See README.md for the feature map and folder layout.
+first. The app runs on sample data in `src/data/mock` unless a build turns on live data, which comes from our Supabase
+database, filled daily by `jobs/sync` from Yahoo, Nasdaq and SGX for private testing only (README "Real stock data").
+There is no real trading in the app. See README.md for the feature map and folder layout.
 
 ## Code standards
 

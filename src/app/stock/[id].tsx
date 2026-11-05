@@ -105,6 +105,8 @@ export default function StockScreen() {
 }
 
 function Para({ title, text }: { title: string; text: string }) {
+  // Real stocks only have some parts of the breakdown so far.
+  if (!text) return null;
   return (
     <View style={{ marginTop: space(3) }}>
       <Text style={styles.paraTitle}>{title}</Text>

@@ -11,6 +11,7 @@ import RootLayout from '../../app/_layout';
 import FiltersScreen from '../../app/filters';
 import Onboarding from '../../app/onboarding';
 import StockScreen from '../../app/stock/[id]';
+import { marketData } from '../../data';
 import { STARTING_CASH_USD } from '../../state/rules';
 import { AppStateProvider, STORAGE_KEY } from '../../state/store';
 import { idOf, persisted, renderWithState } from '../../test-utils';
@@ -153,6 +154,7 @@ describe('Settings', () => {
 
   it('resets the app', async () => {
     await renderWithState(<SettingsScreen />);
+    expect(screen.getByText(/Prices shown are sample data\./)).toBeOnTheScreen();
     await user().press(screen.getByTestId('reset-all'));
     await waitFor(async () => expect((await persisted()).onboarded).toBe(false));
   });
@@ -201,6 +203,22 @@ describe('Stock detail', () => {
     expect(screen.getByText(/Cloud giants raise AI spending/)).toBeOnTheScreen();
     await user().press(screen.getByTestId('range-1Y'));
     expect(screen.getByTestId('range-1Y')).toBeSelected();
+  });
+
+  it('hides breakdown parts a real stock does not have yet', async () => {
+    const base = (await marketData.getStock(idOf('NVDA')))!;
+    const partial = {
+      ...base,
+      news: [],
+      breakdown: { ...base.breakdown, howTheyMakeMoney: '', whyPeopleWatch: '', risksToKnow: '' },
+    };
+    const spy = jest.spyOn(marketData, 'getStock').mockResolvedValue(partial);
+    params.mockReturnValue({ id: idOf('NVDA') });
+    await renderWithState(<StockScreen />);
+    expect(await screen.findByText('What they do')).toBeOnTheScreen();
+    for (const t of ['How they make money', 'Why people watch it', 'Risks to know', 'News'])
+      expect(screen.queryByText(t)).not.toBeOnTheScreen();
+    spy.mockRestore();
   });
 
   it('saves, unsaves and asks for a broker', async () => {

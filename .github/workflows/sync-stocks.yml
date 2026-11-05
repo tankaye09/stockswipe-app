@@ -1,0 +1,63 @@
+name: Sync stock data
+
+# Loads every US and SGX stock into the Supabase database the app reads
+# (jobs/sync). Runs after each market closes:
+#   US:  23:00 UTC Mon-Fri = 7am SGT Tue-Sat
+#   SGX: 11:00 UTC Mon-Fri = 7pm SGT Mon-Fri
+# Skips quietly until the Supabase secrets are added. Each run takes about
+# 10-15 minutes of Linux time (free while the repo is public).
+on:
+  schedule:
+    - cron: '0 23 * * 1-5'
+    - cron: '0 11 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      market:
+        description: US, SGX or all
+        default: all
+      profile_limit:
+        description: Company profiles to fetch this run
+        default: '600'
+      backfill_limit:
+        description: Stocks to backfill a year of prices for this run
+        default: '600'
+
+concurrency:
+  group: sync-stocks
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync ${{ inputs.market || (github.event.schedule == '0 23 * * 1-5' && 'US' || 'SGX') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SYNC_PROFILE_LIMIT: ${{ inputs.profile_limit || '600' }}
+      SYNC_BACKFILL_LIMIT: ${{ inputs.backfill_limit || '600' }}
+      MARKET: ${{ inputs.market || (github.event.schedule == '0 23 * * 1-5' && 'US' || 'SGX') }}
+    steps:
+      - name: Check secrets
+        id: secrets
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "Supabase secrets are not set yet; skipping."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v7
+        if: steps.secrets.outputs.ready == 'true'
+      - uses: actions/setup-node@v7
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.secrets.outputs.ready == 'true'
+        run: npx tsx jobs/sync/main.ts "$MARKET"
