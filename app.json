@@ -32,6 +32,14 @@
           "iosAppId": "ca-app-pub-3940256099942544~1458002511",
           "delayAppMeasurementInit": true
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "# WorkManager (pulled in by Google Mobile Ads) creates its Room database by reflection.\n# Without these, R8 strips the generated class and the app crashes on launch.\n-keep class * extends androidx.room.RoomDatabase { <init>(); }\n-keep class androidx.work.impl.WorkDatabase_Impl { *; }\n"
+          }
+        }
       ]
     ],
     "scheme": "stockswipe",
