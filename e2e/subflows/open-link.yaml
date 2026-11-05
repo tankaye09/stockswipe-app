@@ -15,6 +15,15 @@ appId: com.stockswipe.app
           visible: 'Open in .Swipe.\?'
           timeout: 40000
           optional: true
+      # A tap while the prompt is still animating in can miss and leave it up,
+      # so wait for it to settle, and tap again if it is still there.
+      - waitForAnimationToEnd:
+          timeout: 3000
       - tapOn:
           text: 'Open'
           optional: true
+      - runFlow:
+          when:
+            visible: 'Open in .Swipe.\?'
+          commands:
+            - tapOn: 'Open'
