@@ -62,6 +62,16 @@ export const CARD_COLUMNS = [
 
 export type CardRow = Pick<StockRow, (typeof CARD_COLUMNS)[number]> & Partial<Pick<StockRow, 'description'>>;
 
+/**
+ * The REST API root for a Supabase project. Accepts the project URL with or
+ * without the `/rest/v1` path, since the dashboard shows both.
+ */
+export const restRoot = (projectUrl: string) =>
+  `${projectUrl
+    .trim()
+    .replace(/\/+$/, '')
+    .replace(/\/rest\/v1$/, '')}/rest/v1`;
+
 const num = (v: unknown): number | null => (v == null || v === '' || !Number.isFinite(Number(v)) ? null : Number(v));
 
 /**

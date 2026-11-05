@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- jest.isolateModules needs require() */
 import { liveConfig } from '../../data/config';
-import { rowToSummary, type CardRow } from '../../data/live/rows';
+import { restRoot, rowToSummary, type CardRow } from '../../data/live/rows';
 import { createSupabaseProvider, PAGE_SIZE } from '../../data/live/supabaseProvider';
 
 const row = (over: Partial<CardRow> = {}): CardRow => ({
@@ -36,6 +36,15 @@ describe('liveConfig', () => {
     expect(liveConfig('live', '', 'anon')).toBeNull();
     expect(liveConfig('live', 'https://db.example.co', undefined)).toBeNull();
   });
+});
+
+describe('restRoot', () => {
+  it.each([
+    'https://abc.supabase.co',
+    'https://abc.supabase.co/',
+    'https://abc.supabase.co/rest/v1',
+    ' https://abc.supabase.co/rest/v1/ ',
+  ])('accepts %s', (url) => expect(restRoot(url)).toBe('https://abc.supabase.co/rest/v1'));
 });
 
 describe('rowToSummary', () => {

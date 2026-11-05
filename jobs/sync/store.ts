@@ -2,7 +2,7 @@
 // service role key. That key can write, so it lives only in GitHub secrets
 // and is never in the app or the repo.
 import type { Market } from '../../src/data/types';
-import type { PriceRow, StockRow } from '../../src/data/live/rows';
+import { restRoot, type PriceRow, type StockRow } from '../../src/data/live/rows';
 
 export interface StockStore {
   listStocks(market: Market): Promise<StockRow[]>;
@@ -20,7 +20,7 @@ const chunks = <T>(list: T[], size: number): T[][] =>
   Array.from({ length: Math.ceil(list.length / size) }, (_, i) => list.slice(i * size, (i + 1) * size));
 
 export function supabaseStore(baseUrl: string, serviceKey: string, fetchFn: typeof fetch = fetch): StockStore {
-  const root = `${baseUrl.replace(/\/+$/, '')}/rest/v1`;
+  const root = restRoot(baseUrl);
   const auth = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
 
   async function call(method: string, path: string, init: { body?: unknown; headers?: Record<string, string> } = {}) {
