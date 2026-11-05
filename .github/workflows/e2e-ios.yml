@@ -1,10 +1,15 @@
 name: E2E (iOS)
 
-# macOS runners are slow and cost more minutes, so this runs on demand and on main.
+# macOS minutes cost about 10 times Linux minutes, so this runs once a night (only if main changed
+# that day) and on demand from the Actions tab. Android e2e covers pull requests.
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '0 18 * * *' # 2am Singapore time
   workflow_dispatch:
+
+concurrency:
+  group: e2e-ios-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   # Keep the undo toast up long enough for a slow emulator to tap it.
@@ -13,7 +18,27 @@ env:
   EXPO_PUBLIC_ADMIN_TOOLS: '1'
 
 jobs:
+  changed:
+    name: Check main changed today
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: check
+        run: |
+          if [ "${{ github.event_name }}" != schedule ] || [ -n "$(git log --since='25 hours ago' --format=%H -1)" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No commits to main since the last nightly run, so skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   maestro:
+    needs: changed
+    if: needs.changed.outputs.run == 'true'
     name: Maestro flows on an iOS simulator
     # Expo SDK 58 needs Xcode 26 or newer (Swift 6.2). macos-15 defaults to Xcode 16.4.
     runs-on: macos-26

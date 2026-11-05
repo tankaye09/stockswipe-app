@@ -1,7 +1,22 @@
 name: E2E (Android)
 
+# Runner minutes cost money on a private repo, so pull requests only run this when the app or the flows change,
+# and not while they are drafts. Run it by hand from the Actions tab (workflow_dispatch) any time.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'e2e/**'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - '.github/workflows/e2e-android.yml'
+  # On main only the build runs, to fill the caches every pull request starts from.
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -11,52 +26,114 @@ concurrency:
 env:
   # Keep the undo toast up long enough for a slow emulator to tap it.
   EXPO_PUBLIC_UNDO_MS: '20000'
+  # Bump to throw away the cached APK, e.g. after changing how it is built.
+  APK_CACHE_VERSION: '4'
+  # Bump to throw away the cached native build output, e.g. after changing Gradle or NDK settings.
+  NATIVE_CACHE_VERSION: '3'
+  # Flows are split across this many emulators. Each emulator costs a few minutes to start, so a
+  # few shards are much cheaper than one job per flow and still finish in about the same time.
+  E2E_SHARDS: '2'
   # Turn on the admin page so flows can set tiny swipe limits on their own device.
   EXPO_PUBLIC_ADMIN_TOOLS: '1'
 
 jobs:
   build:
     name: Build release APK
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     outputs:
-      flows: ${{ steps.flows.outputs.flows }}
+      shards: ${{ steps.shards.outputs.shards }}
     steps:
       - uses: actions/checkout@v4
-      - name: List flows
-        id: flows
-        run: echo "flows=$(ls e2e/flows/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+      # Deals the flows out to E2E_SHARDS groups, e.g. ["deep-link onboarding ...", "filters paper-trade ..."].
+      - name: Split flows into shards
+        id: shards
+        run: |
+          echo "shards=$(ls e2e/flows/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' \
+            | jq -R -s -c --argjson n "$E2E_SHARDS" 'split("\n")[:-1] | to_entries | group_by(.key % $n) | map(map(.value) | join(" "))')" >> "$GITHUB_OUTPUT"
+
+      # Reuse the last APK when nothing that goes into it has changed, e.g. when only flows or docs changed.
+      - name: Restore a matching APK
+        id: apk
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/apk
+          key: apk-${{ env.APK_CACHE_VERSION }}-${{ env.EXPO_PUBLIC_UNDO_MS }}-${{ env.EXPO_PUBLIC_ADMIN_TOOLS }}-${{ hashFiles('package-lock.json', 'app.json', 'tsconfig.json', 'src/**', 'assets/**') }}
+
       - uses: actions/setup-node@v4
+        if: steps.apk.outputs.cache-hit != 'true'
         with:
           node-version: 22
           cache: npm
       - uses: actions/setup-java@v4
+        if: steps.apk.outputs.cache-hit != 'true'
         with:
           distribution: temurin
           java-version: 17
+      # Caches Gradle's downloads and build outputs between runs.
+      # Pull requests save their own caches too, so a second push to the same pull request builds fast.
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.apk.outputs.cache-hit != 'true'
+        with:
+          cache-read-only: false
       - run: npm ci
+        if: steps.apk.outputs.cache-hit != 'true'
       - name: Generate the native Android project
-        run: npx expo prebuild --platform android --no-install
+        if: steps.apk.outputs.cache-hit != 'true'
+        run: |
+          npx expo prebuild --platform android --no-install
+          # The default 512 MB metaspace runs out near the end of the build.
+          sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g/' android/gradle.properties
+      # Most of the build is compiling the native libraries (C++ and Kotlin), which only change with
+      # dependencies or app.json. Restore their build output so Gradle only redoes what changed,
+      # usually just the JS bundle. Restored after prebuild, which recreates the android folder.
+      - name: Restore native build output
+        if: steps.apk.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/.gradle
+            android/build
+            android/app/build
+            android/app/.cxx
+            node_modules/**/android/build
+            node_modules/**/android/.cxx
+          key: android-native-${{ env.NATIVE_CACHE_VERSION }}-${{ hashFiles('package-lock.json', 'app.json') }}
       - name: Build a release APK (JS bundled in, no dev server needed)
+        if: steps.apk.outputs.cache-hit != 'true'
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
+        # R8 minifying and PNG crunching only shrink the APK, which tests don't need, and they take minutes.
+        run: >
+          ./gradlew assembleRelease --build-cache
+          -PreactNativeArchitectures=x86_64
+          -Pandroid.enableMinifyInReleaseBuilds=false
+          -Pandroid.enablePngCrunchInReleaseBuilds=false
+      - name: Move the APK where the cache expects it
+        if: steps.apk.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/apk/"
+
       - uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: ${{ runner.temp }}/apk/app-release.apk
           retention-days: 3
 
   flow:
-    # Each flow gets its own runner and a fresh emulator, so flows run in
-    # parallel and can't affect each other.
-    name: ${{ matrix.flow }}
+    # Each shard gets its own runner and emulator, so shards run in parallel. Within a shard, flows
+    # run one after another, and each starts by clearing the app's data (e2e/subflows/onboard.yaml),
+    # so no flow depends on another or on the order they run in.
+    name: flows ${{ strategy.job-index }}
     needs: build
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        flow: ${{ fromJSON(needs.build.outputs.flows) }}
+        flows: ${{ fromJSON(needs.build.outputs.shards) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -75,27 +152,63 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      # The emulator image needs more disk than the runner has free by default.
+      # The emulator image needs more disk than the runner has free by default. Deleting takes up
+      # to 40s, so it runs in the background while the next steps go on.
       - name: Free disk space
-        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+        run: nohup sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL >/dev/null 2>&1 &
 
-      - name: Run ${{ matrix.flow }}
+      # A saved emulator snapshot boots in seconds instead of a minute-long cold boot.
+      # aosp_atd is Google's slimmed-down image for automated tests: no Play services or
+      # preinstalled apps keeping the CPU busy, so the app starts faster.
+      # The system image and emulator are cached with it: restoring them is faster than the
+      # 90s download, and the snapshot only loads in the emulator version that saved it.
+      - name: Restore the emulator snapshot
+        id: avd
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+            /usr/local/lib/android/sdk/system-images/android-34/aosp_atd
+            /usr/local/lib/android/sdk/emulator
+          key: avd-34-aosp_atd-x86_64-2cores-3072M-settled-with-image
+
+      - name: Create the emulator snapshot
+        if: steps.avd.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
           arch: x86_64
-          target: google_apis
+          target: aosp_atd
+          cores: 2
+          ram-size: 3072M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          # Right after boot, Android keeps optimising system apps for a while. Let that
+          # finish before saving, so every flow starts on an idle emulator.
+          script: sleep 90 && echo "Saved an emulator snapshot."
+
+      - name: Run ${{ matrix.flows }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: aosp_atd
           # Leave 2 of the runner's 4 cores to the host; giving the emulator all 4 made runs worse.
           cores: 2
           ram-size: 3072M
+          force-avd-creation: false
+          # Boot from the snapshot and leave it unchanged, so every flow starts from the same emulator.
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
             adb install "${{ runner.temp }}/apk/app-release.apk"
-            e2e/scripts/run-flow.sh "${{ matrix.flow }}"
+            failed=""; for f in ${{ matrix.flows }}; do e2e/scripts/run-flow.sh "$f" || failed="$failed $f"; done; if [ -n "$failed" ]; then echo "::error::Failed flows:$failed"; exit 1; fi
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-android-${{ matrix.flow }}
+          name: e2e-android-${{ strategy.job-index }}
           path: |
-            e2e-${{ matrix.flow }}.xml
+            e2e-*.xml
             ~/.maestro/tests/
