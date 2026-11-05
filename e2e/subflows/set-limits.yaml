@@ -25,7 +25,13 @@ appId: com.stockswipe.app
     id: 'admin-ad-every'
 - eraseText: 6
 - inputText: ${AD_EVERY}
-- hideKeyboard
+# Scroll rather than hideKeyboard: on Android, hideKeyboard can press Back
+# and leave the admin page. The small CI screen also puts Save below the fold.
+- scrollUntilVisible:
+    element:
+      id: 'admin-save'
+    direction: DOWN
+    centerElement: true
 - tapOn:
     id: 'admin-save'
 - assertVisible:

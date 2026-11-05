@@ -12,6 +12,9 @@ import { isoDate, trialEndedFirstOpen } from '../../state/rules';
 import { persisted, renderWithState } from '../../test-utils';
 
 const user = () => userEvent.setup();
+
+// These tests press through whole screens with userEvent, which can pass 5 s on a busy CI runner.
+jest.setTimeout(20_000);
 const params = useLocalSearchParams as jest.Mock;
 const store = (over: Partial<Purchases> = {}) => setPurchases({ ...createTestPurchases(), ...over });
 
