@@ -20,15 +20,15 @@ jobs:
     outputs:
       flows: ${{ steps.flows.outputs.flows }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: List flows
         id: flows
         run: echo "flows=$(ls e2e/flows/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
@@ -38,7 +38,7 @@ jobs:
       - name: Build a release APK (JS bundled in, no dev server needed)
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: app-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
@@ -56,8 +56,8 @@ jobs:
       matrix:
         flow: ${{ fromJSON(needs.build.outputs.flows) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: app-release-apk
           path: ${{ runner.temp }}/apk
@@ -90,7 +90,7 @@ jobs:
             adb install "${{ runner.temp }}/apk/app-release.apk"
             e2e/scripts/run-flow.sh "${{ matrix.flow }}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: e2e-android-${{ matrix.flow }}
