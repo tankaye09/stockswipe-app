@@ -16,6 +16,8 @@ env:
   EXPO_PUBLIC_UNDO_MS: '20000'
   # Turn on the admin page so flows can set tiny swipe limits on their own device.
   EXPO_PUBLIC_ADMIN_TOOLS: '1'
+  # Maestro's iOS driver can take minutes to start on a cold CI simulator (ms).
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
 
 jobs:
   changed:
