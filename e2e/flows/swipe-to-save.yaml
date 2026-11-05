@@ -8,7 +8,8 @@ name: Swiping right saves to the watchlist
     end: '95%, 45%'
     duration: 300
 - assertVisible: 'Saved .* to your watchlist'
-- tapOn: 'Watchlist'
+- tapOn:
+    id: 'tab-watchlist'
 - assertVisible:
     id: 'watchlist'
 - assertNotVisible:
