@@ -2,7 +2,8 @@
 # 'Open in "Swipe"?' for a link from outside the app, and if nobody answers, the
 # dialog stays up over every later flow. That prompt can take several seconds on
 # a CI simulator, longer than an optional tap waits, so iOS waits for it first.
-# Android opens the link directly. Usage: runFlow with env LINK.
+# iOS doesn't always ask (it may remember the answer), so both steps are
+# optional. Android opens the link directly. Usage: runFlow with env LINK.
 appId: com.stockswipe.app
 ---
 - openLink: ${LINK}
@@ -12,6 +13,8 @@ appId: com.stockswipe.app
     commands:
       - extendedWaitUntil:
           visible: 'Open in .Swipe.\?'
-          timeout: 30000
+          timeout: 15000
+        optional: true
       - tapOn:
           text: 'Open'
+        optional: true

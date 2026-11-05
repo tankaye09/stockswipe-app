@@ -56,7 +56,14 @@ export default function AdminScreen({ enabled = ADMIN_TOOLS }: { enabled?: boole
   const remaining = swipesRemaining(state);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} testID="admin">
+    // "handled" lets a tap on another field or button work while the keyboard is
+    // up, instead of only closing the keyboard.
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      testID="admin"
+    >
       <Text style={styles.note}>
         Changes here apply to this device only. To change limits for everyone, edit the offering metadata in the
         RevenueCat dashboard.
@@ -87,6 +94,7 @@ export default function AdminScreen({ enabled = ADMIN_TOOLS }: { enabled?: boole
             value={draft[f.key]}
             onChangeText={(v) => setDraft({ ...draft, [f.key]: v })}
             keyboardType="number-pad"
+            selectTextOnFocus
             style={styles.input}
           />
         </View>
