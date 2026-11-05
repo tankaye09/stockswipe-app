@@ -17,8 +17,13 @@ name: Paper buy shows up in the paper portfolio
 - waitForAnimationToEnd
 - tapOn:
     id: 'paper-buy'
-- assertVisible:
-    id: 'paper-message'
+# The message appears under the buttons, and the new position row pushes it
+# down, so on the small CI screen it can land below the fold.
+- scrollUntilVisible:
+    element:
+      id: 'paper-message'
+    direction: DOWN
+    visibilityPercentage: 100
 - assertVisible:
     id: 'paper-position'
 # Maestro's `back` only works on Android, and the header back button has no
