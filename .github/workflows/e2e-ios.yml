@@ -53,17 +53,30 @@ jobs:
           cache: npm
       - run: npm ci
 
+      # Keeps compiled C++ and Objective-C between nightly runs. React Native's Podfile
+      # turns it on for every pod when USE_CCACHE=1 is set during pod install.
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ccache-ios
+          max-size: 2G
+          save: ${{ github.ref == 'refs/heads/main' }}
+
       - name: Generate the native iOS project
+        env:
+          USE_CCACHE: '1'
         run: npx expo prebuild --platform ios
 
       - name: Build for the simulator (Release, JS bundled in)
         # pipefail makes a failed build fail this step, even though the output goes through tail.
+        # The runner is Apple silicon, so build for arm64 only. A generic simulator build also
+        # compiles everything a second time for Intel (x86_64), which doubles the build.
         run: |
           set -o pipefail
           xcodebuild -version
           xcodebuild -workspace ios/Swipe.xcworkspace -scheme Swipe -configuration Release \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO | tail -n 50
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=YES ARCHS=arm64 | tail -n 50
 
       - name: Install Maestro
         run: |
@@ -74,6 +87,9 @@ jobs:
         run: |
           UDID=$(xcrun simctl list devices available -j | node -e 'const d=JSON.parse(require("fs").readFileSync(0)).devices;for(const k in d)for(const x of d[k])if(/iPhone/.test(x.name)){console.log(x.udid);process.exit(0)}')
           xcrun simctl boot "$UDID"
+          # The first boot takes about 7 minutes on CI. Wait for it, so the simulator isn't
+          # still busy when Maestro starts its driver.
+          xcrun simctl bootstatus "$UDID"
           xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Swipe.app
 
       # Maestro's iOS driver can take minutes to start the first time, which used
@@ -86,16 +102,26 @@ jobs:
           done
           exit 1
 
-      # One simulator, so flows run one after another. Each flow starts from a
-      # fresh install, and one failure doesn't stop the rest.
+      # One simulator, so flows run one after another, each from a fresh install
+      # (onboard.yaml clears app state). They run in one Maestro call because each
+      # call restarts Maestro's iOS driver, which took about 50s per flow.
       - name: Run flows
         run: |
+          set -o pipefail
+          maestro test e2e/flows --format junit --output e2e-ios.xml 2>&1 | tee maestro.log && exit 0
+          # Run each failed flow again on its own, only so the log shows its
+          # screen and app logs. The job fails whatever the second run does.
           failed=""
           for f in e2e/flows/*.yaml; do
-            name=$(basename "$f" .yaml)
-            e2e/scripts/run-flow.sh "$name" || failed="$failed $name"
+            title=$(sed -n 's/^name: //p' "$f")
+            if grep -qF "[Failed] $title (" maestro.log; then
+              name=$(basename "$f" .yaml)
+              failed="$failed $name"
+              e2e/scripts/run-flow.sh "$name" || true
+            fi
           done
-          if [ -n "$failed" ]; then echo "::error::Failed flows:$failed"; exit 1; fi
+          echo "::error::Failed flows:${failed:- see the log above}"
+          exit 1
 
       - uses: actions/upload-artifact@v7
         if: always()
