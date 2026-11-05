@@ -7,8 +7,9 @@ the app reads from it. Setup takes about 10 minutes and the free plan is enough 
 
 1. Sign up at [supabase.com](https://supabase.com) and create a project. Pick the **Singapore** region and save the
    database password somewhere safe.
-2. Open **SQL Editor**, paste the whole of `migrations/20261105000000_stocks.sql` and run it. This creates the `stocks`
-   and `daily_prices` tables and makes them read-only for the app.
+2. Open **SQL Editor** and run each file in `migrations/` in name order (paste the whole file, then **Run**). The first
+   creates the `stocks` and `daily_prices` tables and makes them read-only for the app; the second gives the app and
+   the sync job access to them.
 
 ## 2. Add the keys
 
