@@ -73,21 +73,25 @@ Principles:
   - **Isolated:** every flow starts with `e2e/subflows/onboard.yaml`, which stops the app and clears its data, so no
     flow depends on another or on the order they run in. Run one on its own with
     `maestro test e2e/flows/paper-trade.yaml`.
-  - **Parallel:** in CI each flow runs in its own job on its own emulator. Locally, boot two simulators or emulators
+  - **Parallel:** in CI the flows are split across a few emulators that run at the same time (`E2E_SHARDS` in
+    `e2e-android.yml`). Locally, boot two simulators or emulators
     and run `npm run e2e:parallel`.
   - To run locally, build and install the app (`npx expo run:ios` or `npx expo run:android`) and install Maestro.
 
 ## CI
 
-- `ci.yml`: typecheck, lint, format check and unit tests with coverage, on every push and pull request.
-- `e2e-android.yml`: builds a release APK once, then runs every flow in parallel, each on its own emulator, on every
-  pull request. To keep it fast it reuses the last APK when nothing in it changed, restores the native build output
+The repo is private, so every runner minute counts against the GitHub Actions budget (macOS minutes cost about 10
+times Linux minutes). The workflows only run when they need to:
+
+- `ci.yml`: typecheck, lint, format check and unit tests with coverage, on every push and pull request that changes
+  more than Markdown.
+- `e2e-android.yml`: builds a release APK once, then runs the flows split across a few emulators in parallel, on pull
+  requests that change the app or the flows (drafts are skipped) and on demand. To keep it fast it reuses the last APK when nothing in it changed, restores the native build output
   and Gradle caches, skips R8 minifying, and boots each emulator from a saved snapshot of Google's slimmed-down
   `aosp_atd` test image. A build-only run on `main` fills the caches. Bump `APK_CACHE_VERSION` in the workflow after
   changing how the APK is built.
 - `e2e-ios.yml`: builds for the iOS simulator on macOS 26 (Expo SDK 58 needs Xcode 26) and runs the flows one after
-  another on one simulator, on pushes to `main` and on demand (macOS runners are
-  slower and cost more).
+  another on one simulator, nightly if `main` changed that day, and on demand.
 
 ## Before launch
 
