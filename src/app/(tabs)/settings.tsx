@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
 import { BROKERS, openBrokerSignUp } from '../../broker/brokers';
 import { Button, Chip, Row, SectionTitle } from '../../components/ui';
 import { DATA_NOTE } from '../../data';
@@ -18,8 +18,17 @@ export default function SettingsScreen() {
   const { state, dispatch } = useAppState();
   const { pickBroker } = useLocalSearchParams<{ pickBroker?: string }>();
   const [restoreNote, setRestoreNote] = useState<string | null>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
+  const brokerY = useRef(0);
   const limits = effectiveLimits(state);
   const daysLeft = freeDaysLeft(state);
+
+  // Settings is a tab, so it keeps its scroll position. When Trade mode sends the user
+  // here to pick a broker, jump to the broker picker. Each request has a new pickBroker
+  // value, so this runs every time, not just the first.
+  useEffect(() => {
+    if (pickBroker) scroll.current?.scrollTo({ y: brokerY.current, animated: false });
+  }, [pickBroker]);
 
   const restore = async () => {
     setRestoreNote('Checking…');
@@ -33,8 +42,15 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.content} testID="settings">
-      <SectionTitle>Your broker</SectionTitle>
+    <ScrollView
+      ref={scroll}
+      style={{ backgroundColor: colors.bg }}
+      contentContainerStyle={styles.content}
+      testID="settings"
+    >
+      <View testID="broker-section" onLayout={(e) => (brokerY.current = e.nativeEvent.layout.y)}>
+        <SectionTitle>Your broker</SectionTitle>
+      </View>
       {pickBroker && !state.broker && (
         <Text style={styles.hint} testID="pick-broker-hint">
           Pick your broker so Trade mode knows where to send you.

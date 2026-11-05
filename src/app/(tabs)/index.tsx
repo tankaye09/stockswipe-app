@@ -77,7 +77,7 @@ function Feed({ universe }: { universe: StockSummary[] }) {
 
     if (!state.broker) {
       undoSwipe();
-      router.push('/settings?pickBroker=1');
+      router.push(`/settings?pickBroker=${Date.now()}`);
       return;
     }
     const broker = state.broker;

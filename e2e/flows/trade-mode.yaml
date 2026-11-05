@@ -2,6 +2,18 @@ appId: com.stockswipe.app
 name: Trade mode asks for a broker first
 ---
 - runFlow: ../subflows/onboard.yaml
+# Leave Settings scrolled to the bottom. The tab keeps that position, so Trade mode
+# must jump back up to the broker picker when it sends the user there.
+- tapOn:
+    id: 'tab-settings'
+- scrollUntilVisible:
+    element:
+      id: 'open-admin'
+    direction: DOWN
+- assertNotVisible:
+    id: 'broker-moomoo'
+- tapOn:
+    id: 'tab-discover'
 - tapOn:
     id: 'mode-trade'
 - tapOn:
