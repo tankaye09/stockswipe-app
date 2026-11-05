@@ -6,8 +6,11 @@ name: Deep links open a stock, and a malformed one shows not found instead of cr
     file: ../subflows/open-link.yaml
     env:
       LINK: 'stockswipe://stock/US%3AAAPL'
-- assertVisible:
-    id: 'stock-screen'
+# The stock screen can take a while to appear on a CI simulator after the link.
+- extendedWaitUntil:
+    visible:
+      id: 'stock-screen'
+    timeout: 30000
 - assertVisible: 'In plain English'
 # A broken escape sequence used to crash the stock screen on decode.
 - runFlow:
