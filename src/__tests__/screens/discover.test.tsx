@@ -73,7 +73,7 @@ it('Trade mode without a broker sends you to pick one', async () => {
   await openFeed({ swipeMode: 'trade' });
   expect(screen.getByText('↗')).toBeOnTheScreen();
   await press('right-button');
-  expect(router.push).toHaveBeenCalledWith('/settings?pickBroker=1');
+  expect(router.push).toHaveBeenCalledWith(expect.stringMatching(/^\/settings\?pickBroker=\d+$/));
 });
 
 it('Trade mode opens the broker after the undo window', async () => {

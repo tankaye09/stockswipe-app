@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { render, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, ScrollView } from 'react-native';
 import TabsLayout from '../../app/(tabs)/_layout';
 import PortfolioScreen from '../../app/(tabs)/portfolio';
 import SettingsScreen from '../../app/(tabs)/settings';
@@ -150,6 +150,30 @@ describe('Settings', () => {
 
     await user().press(screen.getByTestId('broker-moomoo'));
     await waitFor(async () => expect((await persisted()).broker).toBeNull());
+  });
+
+  it('jumps to the broker picker each time Trade mode asks for a broker', async () => {
+    const scrollTo = jest.spyOn(ScrollView.prototype, 'scrollTo');
+    params.mockReturnValue({ pickBroker: '1' });
+    await renderWithState(<SettingsScreen />);
+    await fireEvent(screen.getByTestId('broker-section'), 'layout', { nativeEvent: { layout: { y: 40 } } });
+    params.mockReturnValue({ pickBroker: '2' });
+    await screen.rerender(
+      <AppStateProvider>
+        <SettingsScreen />
+      </AppStateProvider>,
+    );
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 40, animated: false });
+    expect(scrollTo).toHaveBeenCalledTimes(2);
+    scrollTo.mockRestore();
+  });
+
+  it('keeps its scroll position when opened normally', async () => {
+    const scrollTo = jest.spyOn(ScrollView.prototype, 'scrollTo');
+    params.mockReturnValue({});
+    await renderWithState(<SettingsScreen />);
+    expect(scrollTo).not.toHaveBeenCalled();
+    scrollTo.mockRestore();
   });
 
   it('resets the app', async () => {
