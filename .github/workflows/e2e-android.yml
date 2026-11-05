@@ -33,6 +33,8 @@ env:
   # Flows are split across this many emulators. Each emulator costs a few minutes to start, so a
   # few shards are much cheaper than one job per flow and still finish in about the same time.
   E2E_SHARDS: '2'
+  # Turn on the admin page so flows can set tiny swipe limits on their own device.
+  EXPO_PUBLIC_ADMIN_TOOLS: '1'
 
 jobs:
   build:
@@ -57,7 +59,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/apk
-          key: apk-${{ env.APK_CACHE_VERSION }}-${{ env.EXPO_PUBLIC_UNDO_MS }}-${{ hashFiles('package-lock.json', 'app.json', 'tsconfig.json', 'src/**', 'assets/**') }}
+          key: apk-${{ env.APK_CACHE_VERSION }}-${{ env.EXPO_PUBLIC_UNDO_MS }}-${{ env.EXPO_PUBLIC_ADMIN_TOOLS }}-${{ hashFiles('package-lock.json', 'app.json', 'tsconfig.json', 'src/**', 'assets/**') }}
 
       - uses: actions/setup-node@v4
         if: steps.apk.outputs.cache-hit != 'true'

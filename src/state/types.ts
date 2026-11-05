@@ -1,6 +1,7 @@
 import type { Market, StockId, Theme } from '../data/types';
 import type { FeedFilters } from '../feed/feedEngine';
 import type { BrokerId } from '../broker/brokers';
+import type { Limits } from '../monetization/config';
 
 /** What a right-swipe does. */
 export type SwipeMode = 'save' | 'trade';
@@ -36,8 +37,12 @@ export interface AppState {
   /** Recently shown, so the feed avoids repeats. Capped. */
   seen: StockId[];
   swipesToday: { date: string; count: number };
-  /** Placeholder until real in-app purchase is wired up. */
+  /** Premium is active. Set by a purchase, and kept in sync with the store on launch. */
   premium: boolean;
+  /** Limits set for everyone in the RevenueCat dashboard, cached from the last launch. */
+  remoteLimits: Partial<Limits> | null;
+  /** Limits set on this device from the admin page. Wins over everything else. */
+  limitOverride: Partial<Limits> | null;
   paper: {
     /** Virtual cash in USD. SGX trades convert at a fixed sample rate. */
     cashUsd: number;

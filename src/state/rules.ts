@@ -1,10 +1,8 @@
 // Business rules kept as pure functions so they're easy to test and tweak.
 import type { Currency } from '../data/types';
+import { DEFAULT_LIMITS, type Limits } from '../monetization/config';
 import type { AppState, PaperTrade, Position } from './types';
 
-export const FREE_DAYS = 7;
-export const FREE_DAILY_SWIPES = 50;
-export const AD_EVERY_N_SWIPES = 10;
 export const STARTING_CASH_USD = 100_000;
 export const SEEN_MEMORY = 60;
 
@@ -17,17 +15,52 @@ export function daysSince(iso: string, now = new Date()) {
   return Math.floor((new Date(isoDate(now)).getTime() - new Date(iso).getTime()) / 86400000);
 }
 
-/** Swipes left today, or Infinity when unlimited. */
-export function swipesRemaining(state: Pick<AppState, 'premium' | 'firstOpen' | 'swipesToday'>, now = new Date()) {
-  if (state.premium) return Infinity;
-  if (daysSince(state.firstOpen, now) < FREE_DAYS) return Infinity;
-  const used = state.swipesToday.date === isoDate(now) ? state.swipesToday.count : 0;
-  return Math.max(0, FREE_DAILY_SWIPES - used);
+/** Highest value accepted for any limit, so a typo can't break the app. */
+export const MAX_LIMIT = 10_000;
+
+/** Keeps only whole numbers from 0 to MAX_LIMIT for known limit keys. */
+export function cleanLimits(raw: unknown): Partial<Limits> {
+  if (!raw || typeof raw !== 'object') return {};
+  const out: Partial<Limits> = {};
+  for (const key of Object.keys(DEFAULT_LIMITS) as (keyof Limits)[]) {
+    const value = (raw as Record<string, unknown>)[key];
+    if (typeof value !== 'number' && (typeof value !== 'string' || value.trim() === '')) continue;
+    const n = Number(value);
+    if (Number.isInteger(n) && n >= 0 && n <= MAX_LIMIT) out[key] = n;
+  }
+  return out;
 }
 
-export function shouldShowAd(premium: boolean, swipesThisSession: number) {
-  return !premium && swipesThisSession > 0 && swipesThisSession % AD_EVERY_N_SWIPES === 0;
+/** The limits in force: built-in defaults, then the dashboard's values, then this device's admin override. */
+export const effectiveLimits = (state: Pick<AppState, 'remoteLimits' | 'limitOverride'>): Limits => ({
+  ...DEFAULT_LIMITS,
+  ...cleanLimits(state.remoteLimits),
+  ...cleanLimits(state.limitOverride),
+});
+
+type UsageState = Pick<AppState, 'premium' | 'firstOpen' | 'swipesToday' | 'remoteLimits' | 'limitOverride'>;
+
+/** Days of unlimited swipes left (0 once the free days are over, or for Premium). */
+export function freeDaysLeft(state: Omit<UsageState, 'swipesToday'>, now = new Date()) {
+  if (state.premium) return 0;
+  return Math.max(0, effectiveLimits(state).freeDays - daysSince(state.firstOpen, now));
 }
+
+/** Swipes left today, or Infinity when unlimited. */
+export function swipesRemaining(state: UsageState, now = new Date()) {
+  if (state.premium || freeDaysLeft(state, now) > 0) return Infinity;
+  const used = state.swipesToday.date === isoDate(now) ? state.swipesToday.count : 0;
+  return Math.max(0, effectiveLimits(state).dailySwipes - used);
+}
+
+/** Ads show after every `every` stock swipes for free users. 0 turns them off. */
+export function shouldShowAd(premium: boolean, swipesThisSession: number, every: number) {
+  return !premium && every > 0 && swipesThisSession > 0 && swipesThisSession % every === 0;
+}
+
+/** A first-open date that makes the free days already over. Used by the admin page. */
+export const trialEndedFirstOpen = (freeDays: number, now = new Date()) =>
+  isoDate(new Date(new Date(isoDate(now)).getTime() - (freeDays + 1) * 86400000));
 
 export type TradeSide = PaperTrade['side'];
 

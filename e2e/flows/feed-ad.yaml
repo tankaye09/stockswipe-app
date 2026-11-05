@@ -1,0 +1,19 @@
+appId: com.stockswipe.app
+name: Free users see an ad card every 10 swipes, which they can swipe past
+---
+- runFlow: ../subflows/onboard.yaml
+- repeat:
+    times: 10
+    commands:
+      - tapOn:
+          id: 'skip-button'
+- assertVisible:
+    id: 'ad-card'
+- assertVisible:
+    id: 'ad-remove-ads'
+- tapOn:
+    id: 'skip-button'
+- assertNotVisible:
+    id: 'ad-card'
+- assertVisible:
+    id: 'card-symbol'

@@ -1,0 +1,44 @@
+# Sets this device's free tier limits on the admin page, then returns to the feed.
+# Pass FREE_DAYS, DAILY_SWIPES and AD_EVERY as env.
+appId: com.stockswipe.app
+---
+- tapOn:
+    id: 'tab-settings'
+- scrollUntilVisible:
+    element:
+      id: 'open-admin'
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: 'open-admin'
+- assertVisible:
+    id: 'admin'
+- tapOn:
+    id: 'admin-free-days'
+- eraseText: 6
+- inputText: ${FREE_DAYS}
+- tapOn:
+    id: 'admin-daily-swipes'
+- eraseText: 6
+- inputText: ${DAILY_SWIPES}
+- tapOn:
+    id: 'admin-ad-every'
+- eraseText: 6
+- inputText: ${AD_EVERY}
+- hideKeyboard
+- tapOn:
+    id: 'admin-save'
+- assertVisible:
+    id: 'admin-note'
+    text: 'Saved for this device.'
+- scrollUntilVisible:
+    element:
+      id: 'admin-done'
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: 'admin-done'
+- tapOn:
+    id: 'tab-discover'
+- assertVisible:
+    id: 'deck'

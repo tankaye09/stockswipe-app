@@ -118,8 +118,35 @@ it('stops at the daily limit after the free week', async () => {
   await press('skip-button');
   expect(await screen.findByText('That’s your 50 swipes for today')).toBeOnTheScreen();
   expect(screen.getByTestId('skip-button')).toBeDisabled();
-  await fireEvent.press(screen.getByText('See Premium'));
-  expect(router.push).toHaveBeenCalledWith('/settings');
+  await fireEvent.press(screen.getByTestId('limit-upgrade'));
+  expect(router.push).toHaveBeenCalledWith('/paywall');
+});
+
+it('uses limits from the dashboard and the admin override', async () => {
+  await openFeed({ ...OLD_USER, remoteLimits: { dailySwipes: 20 }, swipesToday: { date: isoDate(), count: 5 } });
+  expect(screen.getByTestId('swipes-left')).toHaveTextContent('15 left');
+  screen.unmount();
+  await openFeed({
+    ...OLD_USER,
+    remoteLimits: { dailySwipes: 20 },
+    limitOverride: { dailySwipes: 3, adEvery: 2 },
+    swipesToday: { date: isoDate(), count: 0 },
+  });
+  expect(screen.getByTestId('swipes-left')).toHaveTextContent('3 left');
+  await press('skip-button');
+  await press('skip-button');
+  expect(await screen.findByTestId('ad-card')).toBeOnTheScreen();
+  await fireEvent.press(screen.getByTestId('ad-remove-ads'));
+  expect(router.push).toHaveBeenCalledWith('/paywall');
+  await press('skip-button');
+  await press('skip-button');
+  expect(await screen.findByText('That’s your 3 swipes for today')).toBeOnTheScreen();
+});
+
+it('shows no ads when the admin sets the interval to 0', async () => {
+  await openFeed({ limitOverride: { adEvery: 0 } });
+  for (let i = 0; i < 10; i++) await press('skip-button');
+  expect(screen.queryByTestId('ad-card')).not.toBeOnTheScreen();
 });
 
 it('Premium users have no limit and no ads', async () => {

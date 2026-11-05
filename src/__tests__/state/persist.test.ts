@@ -12,6 +12,8 @@ const { hydrated: _h, ...valid } = {
   watchlist: ['US:AAPL', 'SGX:D05'],
   seen: ['US:BRK.B'],
   swipesToday: { date: '2026-11-04', count: 3 },
+  remoteLimits: { freeDays: 3, dailySwipes: 40 },
+  limitOverride: { adEvery: 0 },
   paper: {
     cashUsd: 90_000,
     positions: [{ id: 'US:AAPL', qty: -2, avgPrice: 200 }],
@@ -52,6 +54,9 @@ describe('parseSavedState', () => {
     ['swipesToday', { date: '2026-11-04', count: -1 }],
     ['swipesToday', { date: 'today', count: 1 }],
     ['premium', 1],
+    ['remoteLimits', { dailySwipes: -5 }],
+    ['remoteLimits', { dailySwipes: 10, hack: 1 }],
+    ['limitOverride', 'unlimited'],
     ['paper', { cashUsd: 'lots', positions: [], trades: [] }],
     ['paper', { cashUsd: 1, positions: [{ id: 'US:AAPL', qty: 1 }], trades: [] }],
     ['paper', { cashUsd: 1, positions: [], trades: [{ id: 'US:AAPL', side: 'gift', qty: 1, price: 1, at: '' }] }],
@@ -63,7 +68,13 @@ describe('parseSavedState', () => {
   });
 
   it('accepts no broker and no earnings filter', () => {
-    const state = { ...valid, broker: null, filters: { ...valid.filters, earningsWithinDays: null } };
+    const state = {
+      ...valid,
+      broker: null,
+      remoteLimits: null,
+      limitOverride: null,
+      filters: { ...valid.filters, earningsWithinDays: null },
+    };
     expect(parseSavedState(JSON.stringify(state))).toEqual(state);
   });
 });

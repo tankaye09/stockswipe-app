@@ -1,11 +1,13 @@
-import { useLocalSearchParams } from 'expo-router';
-import React from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import { BROKERS } from '../../broker/brokers';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { BROKERS, openBrokerSignUp } from '../../broker/brokers';
 import { Button, Chip, Row, SectionTitle } from '../../components/ui';
 import type { Market, Theme } from '../../data/types';
 import { ALL_THEMES, THEME_EMOJI, THEME_LABELS } from '../../feed/themes';
-import { FREE_DAILY_SWIPES, FREE_DAYS } from '../../state/rules';
+import { ADMIN_TOOLS } from '../../monetization/config';
+import { purchases } from '../../monetization/purchases';
+import { effectiveLimits, freeDaysLeft } from '../../state/rules';
 import { useAppState } from '../../state/store';
 import { colors, space } from '../../theme';
 
@@ -14,6 +16,20 @@ const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x
 export default function SettingsScreen() {
   const { state, dispatch } = useAppState();
   const { pickBroker } = useLocalSearchParams<{ pickBroker?: string }>();
+  const [restoreNote, setRestoreNote] = useState<string | null>(null);
+  const limits = effectiveLimits(state);
+  const daysLeft = freeDaysLeft(state);
+
+  const restore = async () => {
+    setRestoreNote('Checking…');
+    try {
+      const premium = await purchases().restore();
+      if (premium) dispatch({ type: 'setPremium', premium });
+      setRestoreNote(premium ? 'Premium restored.' : 'No Premium subscription found for this account.');
+    } catch {
+      setRestoreNote('Could not reach the store. Try again later.');
+    }
+  };
 
   return (
     <ScrollView style={{ backgroundColor: colors.bg }} contentContainerStyle={styles.content} testID="settings">
@@ -37,6 +53,26 @@ export default function SettingsScreen() {
       <Text style={styles.note}>
         Trade mode opens this broker’s app on the stock. You place any real trade there, not in Swipe.
       </Text>
+      {!state.broker && (
+        <>
+          <Text style={[styles.label, { marginTop: space(4) }]}>No broker yet? Open an account</Text>
+          <Row style={{ marginTop: space(2) }}>
+            {BROKERS.map((b) => (
+              <Chip
+                key={b.id}
+                testID={`signup-${b.id}`}
+                label={`${b.name} ↗`}
+                selected={false}
+                onPress={() => openBrokerSignUp(b.id)}
+              />
+            ))}
+          </Row>
+          <Text style={styles.note}>
+            Swipe may earn a referral fee if you open an account through these links. It does not change which stocks
+            you see.
+          </Text>
+        </>
+      )}
 
       <SectionTitle>Markets</SectionTitle>
       <Row>
@@ -64,20 +100,33 @@ export default function SettingsScreen() {
       </Row>
 
       <SectionTitle>Premium</SectionTitle>
-      <View style={styles.switchRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Premium (test switch)</Text>
-          <Text style={styles.note}>
-            Free: unlimited for {FREE_DAYS} days, then {FREE_DAILY_SWIPES} swipes a day with ads. Premium: unlimited, no
-            ads. Real in-app purchase comes later.
+      {state.premium ? (
+        <Text style={styles.label} testID="premium-active">
+          ✨ Premium is on: unlimited swipes, no ads.
+        </Text>
+      ) : (
+        <>
+          <Text style={styles.label} testID="plan-status">
+            {daysLeft > 0
+              ? `Free: unlimited swipes for ${daysLeft} more day${daysLeft === 1 ? '' : 's'}`
+              : `Free: ${limits.dailySwipes} swipes a day, with ads`}
           </Text>
-        </View>
-        <Switch
-          testID="premium-switch"
-          value={state.premium}
-          onValueChange={(v) => dispatch({ type: 'setPremium', premium: v })}
-        />
-      </View>
+          <Button
+            testID="see-premium"
+            label="See Premium"
+            onPress={() => router.push('/paywall')}
+            style={{ marginTop: space(3) }}
+          />
+        </>
+      )}
+      <Pressable testID="restore-purchases" onPress={restore} style={{ paddingVertical: space(3) }}>
+        <Text style={styles.link}>Restore purchases</Text>
+      </Pressable>
+      {restoreNote && (
+        <Text style={styles.note} testID="restore-note">
+          {restoreNote}
+        </Text>
+      )}
 
       <SectionTitle>About</SectionTitle>
       <Text style={styles.note}>
@@ -91,6 +140,15 @@ export default function SettingsScreen() {
         onPress={() => dispatch({ type: 'resetAll' })}
         style={{ marginTop: space(6) }}
       />
+      {ADMIN_TOOLS && (
+        <Button
+          testID="open-admin"
+          label="Admin: limits and test tools"
+          kind="secondary"
+          onPress={() => router.push('/admin')}
+          style={{ marginTop: space(3) }}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -100,5 +158,5 @@ const styles = StyleSheet.create({
   hint: { color: colors.trade, marginBottom: space(2) },
   note: { color: colors.textFaint, fontSize: 13, lineHeight: 18, marginTop: space(2) },
   label: { color: colors.text, fontSize: 16, fontWeight: '600' },
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: space(3) },
+  link: { color: colors.accent, fontWeight: '600' },
 });

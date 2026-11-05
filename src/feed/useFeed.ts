@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { marketData, stockId, type Market, type StockId, type StockSummary } from '../data';
 import { useAppState } from '../state/store';
-import { shouldShowAd, swipesRemaining } from '../state/rules';
+import { effectiveLimits, shouldShowAd, swipesRemaining } from '../state/rules';
 import { buildBatch, type FeedItem } from './feedEngine';
 
 export type DeckItem =
@@ -65,7 +65,7 @@ export function useFeed(universe: StockSummary[]) {
   const advance = (wasStock: boolean) => {
     if (wasStock) sessionSwipes.current += 1;
     const rest = topUp(queue.slice(1));
-    const showAd = wasStock && shouldShowAd(state.premium, sessionSwipes.current);
+    const showAd = wasStock && shouldShowAd(state.premium, sessionSwipes.current, effectiveLimits(state).adEvery);
     setQueue(showAd ? [{ kind: 'ad', key: nextKey('ad') }, ...rest] : rest);
   };
 

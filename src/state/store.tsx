@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
 import type { Currency, Market, StockId, Theme } from '../data/types';
 import type { BrokerId } from '../broker/brokers';
+import type { Limits } from '../monetization/config';
 import { NO_FILTERS, type FeedFilters } from '../feed/feedEngine';
 import { parseSavedState } from './persist';
 import { applyPaperTrade, isoDate, SEEN_MEMORY, STARTING_CASH_USD, type TradeSide } from './rules';
@@ -22,6 +23,8 @@ export const initialState = (): AppState => ({
   seen: [],
   swipesToday: { date: isoDate(), count: 0 },
   premium: false,
+  remoteLimits: null,
+  limitOverride: null,
   paper: { cashUsd: STARTING_CASH_USD, positions: [], trades: [] },
 });
 
@@ -34,6 +37,9 @@ export type Action =
   | { type: 'setSwipeMode'; mode: SwipeMode }
   | { type: 'setBroker'; broker: BrokerId | null }
   | { type: 'setPremium'; premium: boolean }
+  | { type: 'setRemoteLimits'; limits: Partial<Limits> | null }
+  | { type: 'setLimitOverride'; limits: Partial<Limits> | null }
+  | { type: 'setUsage'; firstOpen?: string; swipesToday?: number }
   | { type: 'save'; id: StockId }
   | { type: 'unsave'; id: StockId }
   | { type: 'markSeen'; id: StockId }
@@ -60,6 +66,17 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, broker: action.broker };
     case 'setPremium':
       return { ...state, premium: action.premium };
+    case 'setRemoteLimits':
+      return { ...state, remoteLimits: action.limits };
+    case 'setLimitOverride':
+      return { ...state, limitOverride: action.limits };
+    case 'setUsage':
+      return {
+        ...state,
+        firstOpen: action.firstOpen ?? state.firstOpen,
+        swipesToday:
+          action.swipesToday == null ? state.swipesToday : { date: isoDate(), count: Math.max(0, action.swipesToday) },
+      };
     case 'save':
       return state.watchlist.includes(action.id) ? state : { ...state, watchlist: [action.id, ...state.watchlist] };
     case 'unsave':

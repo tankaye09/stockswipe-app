@@ -43,6 +43,7 @@ Docs: https://docs.expo.dev/eas/index.md
 ## This project
 
 - Screens live in `src/app/`; business rules are pure functions in `src/feed/` and `src/state/rules.ts`. Keep logic out of screens.
+- Revenue settings live in `src/monetization/config.ts` (env vars). Screens use `purchases()` and `AdCard`, never `react-native-purchases` or `react-native-google-mobile-ads` directly. Free tier limits always come from `effectiveLimits(state)`, never constants.
 - All market data goes through `MarketDataProvider` in `src/data/provider.ts`. Never import `src/data/mock` from screens.
 - Tests live in `src/__tests__/` (never in `src/app/`, where every file is a route). `src/test-utils.tsx` renders with app state.
 - React Native Testing Library v14: `render`, `fireEvent` and `userEvent` calls are async and must be awaited.

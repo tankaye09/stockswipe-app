@@ -24,8 +24,54 @@ stats. Swipe right to save (or hand off to your broker), swipe left to skip, and
 | Paper trading        | `src/components/PaperTradePanel.tsx`, `src/state/rules.ts` (buy/sell/short)   |
 | Watchlist, portfolio | `src/app/(tabs)/watchlist.tsx`, `src/app/(tabs)/portfolio.tsx`                |
 | Broker hand-off      | `src/broker/brokers.ts` (moomoo, Tiger, IBKR)                                 |
-| Free limits and ads  | `src/state/rules.ts` (7 days unlimited, then 50/day; ad slot every 10 swipes) |
+| Free limits and ads  | `src/state/rules.ts`, `src/monetization/` (see Revenue below)                 |
+| Premium paywall      | `src/app/paywall.tsx`, `src/monetization/purchases.ts` (RevenueCat)           |
+| Admin page           | `src/app/admin.tsx` (test builds only: try limits on one device)              |
 | US and SGX           | Both markets in sample data; pick in onboarding or Settings                   |
+
+## Revenue
+
+All settings live in `src/monetization/config.ts` and come from `EXPO_PUBLIC_*` variables (see `.env.example`), so
+none of them need code changes. Without any of them set, the app runs in test mode: purchases are simulated and free,
+and the ad card promotes Premium instead of showing a real ad.
+
+| Feature          | How it works                                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free tier        | Unlimited swipes for 7 days, then 50 a day. Counted per device.                                                                                                                 |
+| Premium          | Unlimited swipes, no ads. Monthly and yearly plans through RevenueCat, which handles the App Store and Google Play with one API.                                                |
+| Ads              | A card every 10 stock swipes for free users: a 300x250 AdMob ad, or a Premium card if no ad loads. Non-personalised only (no tracking prompt). Ads never change the stock feed. |
+| Broker referrals | Users without a broker see “Open an account” links in Settings, with a referral-fee disclosure.                                                                                 |
+
+### Changing the limits for everyone (no app update)
+
+In the RevenueCat dashboard, open Product catalog → Offerings → your current offering → Metadata, and set:
+
+```json
+{ "free_days": 7, "daily_swipes": 50, "ad_every": 10 }
+```
+
+Leave a key out to keep the app's default. Apps pick up changes on next launch, and keep the last values when offline.
+Order of precedence: built-in defaults (env vars), then dashboard metadata, then the admin page on one device.
+
+### Admin page
+
+Settings → “Admin: limits and test tools”, in development builds and builds made with `EXPO_PUBLIC_ADMIN_TOOLS=1`
+(internal testing and e2e). It overrides limits on that device only and can end the trial or reset today's count. Never
+set `EXPO_PUBLIC_ADMIN_TOOLS` in store builds, or anyone could give themselves unlimited swipes.
+
+### Accounts to set up before launch
+
+1. **RevenueCat** (free to start): create a project, connect App Store Connect and Google Play, add an entitlement
+   `premium`, and an offering with standard Monthly and Annual packages. Put the public SDK keys in
+   `EXPO_PUBLIC_REVENUECAT_IOS_KEY` and `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`.
+2. **App Store Connect and Google Play Console**: create the two auto-renewing subscriptions and set their prices there.
+   The paywall shows the store's price. `EXPO_PUBLIC_PREMIUM_*_PRICE` is only shown in test mode.
+3. **Google AdMob**: create an iOS and an Android app, replace the test app IDs in `app.json` (plugin
+   `react-native-google-mobile-ads`), create a 300x250 banner unit for each and set `EXPO_PUBLIC_ADMOB_FEED_UNIT_IOS` /
+   `_ANDROID`. Set up the consent message (Privacy & messaging) for EU/UK users.
+4. **Broker partner programmes** (moomoo, Tiger, IBKR): put each referral link in `EXPO_PUBLIC_REFERRAL_*`.
+
+Purchases and AdMob need a development build (`npx expo run:ios|android`); Expo Go always uses test mode.
 
 ## How the code is organised
 
@@ -36,7 +82,8 @@ src/
   data/         Market data types and the provider interface. mock/ holds sample data.
   feed/         Feed rules (pure functions) and the hook that runs the card queue.
   state/        App state (reducer + provider, saved on device) and business rules.
-  broker/       Links out to the user's broker.
+  broker/       Links out to the user's broker, and referral sign-up links.
+  monetization/ Revenue config, Premium purchases (RevenueCat), ads (AdMob) and the launch sync.
   theme/        Colours, spacing, number formatting.
   __tests__/    Unit and component tests, mirroring the folders above.
 e2e/            Maestro end-to-end flows for iOS and Android.
@@ -69,7 +116,7 @@ Principles:
 - **Unit and component tests** use Jest (`jest-expo`) and React Native Testing Library. Coverage is about 100% of lines
   and over 99% of branches. CI fails if coverage drops below the thresholds in `package.json`.
 - **End-to-end tests** use [Maestro](https://maestro.mobile.dev). Flows live in `e2e/flows` and cover onboarding,
-  saving, undo, skipping, paper trading, Trade mode and filters.
+  saving, undo, skipping, paper trading, Trade mode, filters, Premium, the daily limit, feed ads and broker referrals.
   - **Isolated:** every flow starts with `e2e/subflows/onboard.yaml`, which stops the app and clears its data, so no
     flow depends on another or on the order they run in. Run one on its own with
     `maestro test e2e/flows/paper-trade.yaml`.
@@ -96,8 +143,8 @@ times Linux minutes). The workflows only run when they need to:
 ## Before launch
 
 - Choose a market data provider and licence (US and SGX), then replace the mock provider.
-- Confirm broker deep links with moomoo, Tiger and IBKR, ideally with referral codes.
-- Wire up in-app purchase for Premium (the Settings switch is a placeholder) and an ad network.
+- Confirm broker deep links with moomoo, Tiger and IBKR, and join their referral programmes.
+- Set up RevenueCat, store subscriptions and AdMob (see Revenue above).
 - Generate the AI breakdowns from real filings and news (the sample text is hand-written).
 - Fintech lawyer review (MAS) of the wording, paper trading and broker hand-off.
 - App name, icon and store listings.

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, render, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { Alert, Linking } from 'react-native';
@@ -134,7 +134,7 @@ describe('Portfolio', () => {
 });
 
 describe('Settings', () => {
-  it('picks a broker, markets, interests and Premium', async () => {
+  it('picks a broker, markets and interests', async () => {
     params.mockReturnValue({ pickBroker: '1' });
     await renderWithState(<SettingsScreen />, { interests: ['ai'] });
     expect(screen.getByTestId('pick-broker-hint')).toBeOnTheScreen();
@@ -142,8 +142,7 @@ describe('Settings', () => {
     await user().press(screen.getByTestId('settings-market-SGX'));
     await user().press(screen.getByText('🎮 Gaming'));
     await user().press(screen.getByText('🤖 AI'));
-    await fireEvent(screen.getByTestId('premium-switch'), 'valueChange', true);
-    await waitFor(async () => expect((await persisted()).premium).toBe(true));
+    await waitFor(async () => expect((await persisted()).interests).toEqual(['gaming']));
     const s = await persisted();
     expect(s).toMatchObject({ broker: 'moomoo', markets: ['US', 'SGX'], interests: ['gaming'] });
     expect(screen.queryByTestId('pick-broker-hint')).not.toBeOnTheScreen();

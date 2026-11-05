@@ -12,6 +12,7 @@ import { UndoToast, useUndo } from '../../components/UndoToast';
 import { NO_FILTERS } from '../../feed/feedEngine';
 import type { StockSummary } from '../../data/types';
 import { useFeed, useUniverse, type DeckItem } from '../../feed/useFeed';
+import { effectiveLimits } from '../../state/rules';
 import { useAppState } from '../../state/store';
 import { colors, radius, space } from '../../theme';
 
@@ -94,9 +95,9 @@ function Feed({ universe }: { universe: StockSummary[] }) {
       case 'stock':
         return <StockCard item={card.item} />;
       case 'ad':
-        return <AdCard />;
+        return <AdCard onRemoveAds={() => router.push('/paywall')} />;
       case 'limit':
-        return <LimitCard onUpgrade={() => router.push('/settings')} />;
+        return <LimitCard dailySwipes={effectiveLimits(state).dailySwipes} onUpgrade={() => router.push('/paywall')} />;
       case 'empty':
         return <EmptyCard onReset={() => dispatch({ type: 'setFilters', filters: NO_FILTERS })} />;
     }

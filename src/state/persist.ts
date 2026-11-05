@@ -5,6 +5,7 @@
 import { BROKERS } from '../broker/brokers';
 import type { Market, StockId } from '../data/types';
 import { CAP_LABELS, ALL_SECTORS, ALL_THEMES } from '../feed/themes';
+import { cleanLimits } from './rules';
 import type { AppState, PaperTrade, Position } from './types';
 
 type Saved = Partial<Omit<AppState, 'hydrated'>>;
@@ -33,6 +34,10 @@ const isPosition = (v: unknown): v is Position => isObj(v) && isStockId(v.id) &&
 const isTrade = (v: unknown): v is PaperTrade =>
   isObj(v) && isStockId(v.id) && oneOf(SIDES)(v.side) && isNum(v.qty) && isNum(v.price) && typeof v.at === 'string';
 
+/** Limits are null, or an object holding only valid limit values. */
+const isLimits = (v: unknown) =>
+  v === null || (isObj(v) && Object.keys(v).length === Object.keys(cleanLimits(v)).length);
+
 const CHECKS: { [K in keyof Saved]-?: (v: unknown) => boolean } = {
   onboarded: (v) => typeof v === 'boolean',
   firstOpen: isDate,
@@ -50,6 +55,8 @@ const CHECKS: { [K in keyof Saved]-?: (v: unknown) => boolean } = {
   seen: listOf(isStockId),
   swipesToday: (v) => isObj(v) && isDate(v.date) && isNum(v.count) && v.count >= 0,
   premium: (v) => typeof v === 'boolean',
+  remoteLimits: isLimits,
+  limitOverride: isLimits,
   paper: (v) => isObj(v) && isNum(v.cashUsd) && listOf(isPosition)(v.positions) && listOf(isTrade)(v.trades),
 };
 
