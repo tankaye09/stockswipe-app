@@ -10,6 +10,7 @@ name: Swiping left skips without saving
     id: 'skip-button'
 - assertVisible:
     id: 'card-symbol'
-- tapOn: 'Watchlist'
+- tapOn:
+    id: 'tab-watchlist'
 - assertVisible:
     id: 'watchlist-empty'

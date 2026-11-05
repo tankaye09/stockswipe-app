@@ -21,6 +21,17 @@ name: Paper buy shows up in the paper portfolio
     id: 'paper-message'
 - assertVisible:
     id: 'paper-position'
-- back
-- tapOn: 'Paper'
-- assertVisible: '1 share'
+# Maestro's `back` only works on Android, and the header back button has no
+# label shared by both platforms. Restart the app instead: it opens on the
+# tabs with the saved trade, which also checks that paper trades persist.
+- launchApp
+# A cold start on a CI emulator can take well over the default wait.
+- extendedWaitUntil:
+    visible:
+      id: 'tab-paper'
+    timeout: 60000
+- tapOn:
+    id: 'tab-paper'
+# On iOS a pressable row reads as one element holding all of its text, so
+# match "1 share" anywhere in it rather than as the whole text.
+- assertVisible: '.*1 share.*'

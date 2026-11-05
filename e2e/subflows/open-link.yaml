@@ -1,0 +1,10 @@
+# Opens a deep link the same way on both platforms. iOS first asks
+# 'Open in "Swipe"?' for a link from outside the app, and if nobody answers, the
+# dialog stays up over every later flow. Android opens the link directly, so the
+# tap is optional. Usage: runFlow with env LINK.
+appId: com.stockswipe.app
+---
+- openLink: ${LINK}
+- tapOn:
+    text: 'Open'
+    optional: true

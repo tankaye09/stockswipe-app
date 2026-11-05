@@ -1,17 +1,22 @@
 appId: com.stockswipe.app
 name: The tab bar switches between the four sections
 ---
-# Tabs are matched by label, which works for both the iOS native bar and the Android JS bar.
+# Tabs are matched by testID. On iOS a tab's accessibility label is more than its title
+# (for example "Watchlist, tab, 2 of 4"), so matching the title text fails there.
 - runFlow: ../subflows/onboard.yaml
-- tapOn: 'Watchlist'
+- tapOn:
+    id: 'tab-watchlist'
 - assertVisible:
     id: 'watchlist-empty'
-- tapOn: 'Paper'
+- tapOn:
+    id: 'tab-paper'
 - assertVisible:
     id: 'portfolio'
-- tapOn: 'Settings'
+- tapOn:
+    id: 'tab-settings'
 - assertVisible:
     id: 'settings'
-- tapOn: 'Discover'
+- tapOn:
+    id: 'tab-discover'
 - assertVisible:
     id: 'deck'
