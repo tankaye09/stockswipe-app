@@ -36,9 +36,12 @@ appId: com.stockswipe.app
     visibilityPercentage: 100
 - tapOn:
     id: 'admin-save'
-- assertVisible:
-    id: 'admin-note'
-    text: 'Saved for this device.'
+# The note shows under the Save button, which can be at the bottom edge.
+- scrollUntilVisible:
+    element:
+      id: 'admin-note'
+      text: 'Saved for this device.'
+    direction: DOWN
 - scrollUntilVisible:
     element:
       id: 'admin-done'
