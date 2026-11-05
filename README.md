@@ -53,29 +53,35 @@ Principles:
 
 ## Commands
 
-| Command                 | What it does                                   |
-| ----------------------- | ---------------------------------------------- |
-| `npm start`             | Start the dev server (scan with Expo Go)       |
-| `npm test`              | Unit and component tests                       |
-| `npm run test:coverage` | Tests with coverage (fails under 98% / 95%)    |
-| `npm run typecheck`     | TypeScript                                     |
-| `npm run lint`          | ESLint (Expo config + React Compiler rules)    |
-| `npm run format`        | Prettier                                       |
-| `npm run e2e:android`   | Maestro flows against an installed Android app |
-| `npm run e2e:ios`       | Maestro flows against an installed iOS app     |
+| Command                 | What it does                                |
+| ----------------------- | ------------------------------------------- |
+| `npm start`             | Start the dev server (scan with Expo Go)    |
+| `npm test`              | Unit and component tests                    |
+| `npm run test:coverage` | Tests with coverage (fails under 98% / 95%) |
+| `npm run typecheck`     | TypeScript                                  |
+| `npm run lint`          | ESLint (Expo config + React Compiler rules) |
+| `npm run format`        | Prettier                                    |
+| `npm run e2e`           | All Maestro flows on the connected device   |
+| `npm run e2e:parallel`  | Flows split across 2 connected devices      |
 
 ## Tests
 
 - **Unit and component tests** use Jest (`jest-expo`) and React Native Testing Library. Coverage is about 100% of lines
   and over 99% of branches. CI fails if coverage drops below the thresholds in `package.json`.
 - **End-to-end tests** use [Maestro](https://maestro.mobile.dev). Flows live in `e2e/flows` and cover onboarding,
-  saving, undo, skipping, paper trading, Trade mode and filters. To run them locally, build and install the app on a
-  simulator or emulator (`npx expo run:ios` or `npx expo run:android`), install Maestro, then `maestro test e2e/flows`.
+  saving, undo, skipping, paper trading, Trade mode and filters.
+  - **Isolated:** every flow starts with `e2e/subflows/onboard.yaml`, which stops the app and clears its data, so no
+    flow depends on another or on the order they run in. Run one on its own with
+    `maestro test e2e/flows/paper-trade.yaml`.
+  - **Parallel:** in CI each flow runs in its own job on its own emulator. Locally, boot two simulators or emulators
+    and run `npm run e2e:parallel`.
+  - To run locally, build and install the app (`npx expo run:ios` or `npx expo run:android`) and install Maestro.
 
 ## CI
 
 - `ci.yml`: typecheck, lint, format check and unit tests with coverage, on every push and pull request.
-- `e2e-android.yml`: builds a release APK and runs the Maestro flows on an Android emulator, on every pull request.
+- `e2e-android.yml`: builds a release APK once, then runs every flow in parallel, each on its own emulator, on every
+  pull request.
 - `e2e-ios.yml`: builds for the iOS simulator and runs the flows, on pushes to `main` and on demand (macOS runners are
   slower and cost more).
 
