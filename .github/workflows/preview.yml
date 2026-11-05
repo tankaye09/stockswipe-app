@@ -59,4 +59,7 @@ jobs:
         if: steps.ready.outputs.ok == 'true'
         uses: expo/expo-github-action/preview@v8
         with:
-          command: eas update --auto
+          # Android only for now: that's the phone with a development build. eas-cli can't find the
+          # nested @expo/cli here, so without a platform it also bundles web, which this app doesn't
+          # support. When there's an iPhone development build, add an iOS update step.
+          command: eas update --auto --platform android
