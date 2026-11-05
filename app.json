@@ -7,7 +7,8 @@
       "policy": "fingerprint"
     },
     "updates": {
-      "checkAutomatically": "ON_ERROR_RECOVERY"
+      "checkAutomatically": "ON_ERROR_RECOVERY",
+      "url": "https://u.expo.dev/fb5fee52-d8c6-406b-b191-be911976e3ec"
     },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -80,6 +81,12 @@
     "backgroundColor": "#0B0F14",
     "experiments": {
       "typedRoutes": false
+    },
+    "owner": "tankaye09",
+    "extra": {
+      "eas": {
+        "projectId": "fb5fee52-d8c6-406b-b191-be911976e3ec"
+      }
     }
   }
 }
