@@ -40,8 +40,9 @@ Native builds and e2e flows run in CI; this container can't run simulators.
 
 - `ci.yml`: typecheck, lint, format, unit tests with coverage on every push and PR.
 - `e2e-android.yml`: builds a release APK on every PR and runs the Maestro flows on an emulator. With #4 the APK is built
-  once and each flow runs in its own job. With #6 the APK, Gradle, ccache and the emulator snapshot are cached, and a
-  build-only run on `main` keeps the caches warm for PRs. Bump `APK_CACHE_VERSION` if you change how the APK is built.
+  once and each flow runs in its own job. With #6 the APK, Gradle, native build output and the `aosp_atd` emulator
+  snapshot are cached, and a build-only run on `main` keeps the caches warm for PRs. Bump `APK_CACHE_VERSION` if you
+  change how the APK is built, and `NATIVE_CACHE_VERSION` if you change Gradle or NDK settings.
 - `e2e-ios.yml`: runs on pushes to `main` and on demand (macOS minutes are costly). Expo SDK 58 needs **Xcode 26**
   (`expo-modules-jsi` uses Swift tools 6.2), so the job must use the `macos-26` runner (#5). Keep `set -o pipefail` on
   piped build steps so a failed `xcodebuild` fails its own step.

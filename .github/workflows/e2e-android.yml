@@ -16,7 +16,9 @@ env:
   # Keep the undo toast up long enough for a slow emulator to tap it.
   EXPO_PUBLIC_UNDO_MS: '20000'
   # Bump to throw away the cached APK, e.g. after changing how it is built.
-  APK_CACHE_VERSION: '3'
+  APK_CACHE_VERSION: '4'
+  # Bump to throw away the cached native build output, e.g. after changing Gradle or NDK settings.
+  NATIVE_CACHE_VERSION: '3'
 
 jobs:
   build:
@@ -77,7 +79,7 @@ jobs:
             android/app/.cxx
             node_modules/**/android/build
             node_modules/**/android/.cxx
-          key: android-native-${{ env.APK_CACHE_VERSION }}-${{ hashFiles('package-lock.json', 'app.json') }}
+          key: android-native-${{ env.NATIVE_CACHE_VERSION }}-${{ hashFiles('package-lock.json', 'app.json') }}
       - name: Build a release APK (JS bundled in, no dev server needed)
         if: steps.apk.outputs.cache-hit != 'true'
         working-directory: android
