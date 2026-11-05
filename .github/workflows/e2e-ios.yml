@@ -1,8 +1,25 @@
 name: E2E (iOS)
 
-# macOS minutes cost about 10 times Linux minutes, so this runs once a night (only if main changed
-# that day) and on demand from the Actions tab. Android e2e covers pull requests.
+# iOS e2e takes about 50 minutes, so it never blocks a pull request. It runs:
+# - after every merge to main that touches the app, while the repo is public (macOS runners are free);
+# - once a night instead (2am Singapore, only if main changed) while the repo is private, because
+#   macOS minutes then cost about 10 times Linux minutes;
+# - on a pull request labelled `run-ios-e2e`, for changes that could break iOS (native deps, app.json);
+# - on demand from the Actions tab.
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'e2e/**'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - '.github/workflows/e2e-ios.yml'
+  pull_request:
+    types: [labeled, synchronize, reopened]
   schedule:
     - cron: '0 18 * * *' # 2am Singapore time
   workflow_dispatch:
@@ -21,7 +38,7 @@ env:
 
 jobs:
   changed:
-    name: Check main changed today
+    name: Decide whether to run
     runs-on: ubuntu-latest
     outputs:
       run: ${{ steps.check.outputs.run }}
@@ -30,13 +47,24 @@ jobs:
         with:
           fetch-depth: 0
       - id: check
+        env:
+          EVENT: ${{ github.event_name }}
+          PRIVATE: ${{ github.event.repository.private }}
+          LABELLED: ${{ contains(github.event.pull_request.labels.*.name, 'run-ios-e2e') }}
+          NEW_LABEL: ${{ github.event.label.name }}
+          ACTION: ${{ github.event.action }}
         run: |
-          if [ "${{ github.event_name }}" != schedule ] || [ -n "$(git log --since='25 hours ago' --format=%H -1)" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "No commits to main since the last nightly run, so skipping."
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          fi
+          run=false
+          case "$EVENT" in
+            workflow_dispatch) run=true ;;
+            push) [ "$PRIVATE" != true ] && run=true ;;
+            schedule) [ "$PRIVATE" = true ] && [ -n "$(git log --since='25 hours ago' --format=%H -1)" ] && run=true ;;
+            pull_request)
+              # Adding some other label shouldn't start a run.
+              if [ "$LABELLED" = true ] && { [ "$ACTION" != labeled ] || [ "$NEW_LABEL" = run-ios-e2e ]; }; then run=true; fi ;;
+          esac
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          [ "$run" = true ] || echo "Not running iOS e2e for this $EVENT event."
 
   maestro:
     needs: changed

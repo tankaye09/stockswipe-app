@@ -1,19 +1,12 @@
 name: E2E (Android)
 
-# Runner minutes cost money on a private repo, so pull requests only run this when the app or the flows change,
-# and not while they are drafts. Run it by hand from the Actions tab (workflow_dispatch) any time.
+# Runs on every pull request, but the build and flows only run when the app or the flows change, and
+# not while the PR is a draft. The "E2E (Android) result" job always reports, so it can be a required
+# check: pull requests that skip e2e (docs-only changes) still get a result and can auto-merge.
+# Run it by hand from the Actions tab (workflow_dispatch) any time.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - 'src/**'
-      - 'assets/**'
-      - 'e2e/**'
-      - 'app.json'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - '.github/workflows/e2e-android.yml'
   # On main only the build runs, to fill the caches every pull request starts from.
   push:
     branches: [main]
@@ -36,10 +29,37 @@ env:
   # Turn on the admin page so flows can set tiny swipe limits on their own device.
   EXPO_PUBLIC_ADMIN_TOOLS: '1'
 
+# The changes job reads the pull request's file list. Nothing here writes to the repo.
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
+  changes:
+    name: Check what changed
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.check.outputs.app }}
+    steps:
+      # Matches the whole pull request's diff, like a `paths` filter would.
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "${{ github.event_name }}" != pull_request ]; then echo "app=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          files=$(gh api "repos/${{ github.repository }}/pulls/$PR/files" --paginate -q '.[].filename')
+          if echo "$files" | grep -qE '^(src/|assets/|e2e/|app\.json$|package\.json$|package-lock\.json$|tsconfig\.json$|\.github/workflows/e2e-android\.yml$)'; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No app or flow changes, so e2e is skipped."
+            echo "app=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build release APK
-    if: ${{ !github.event.pull_request.draft }}
+    needs: changes
+    if: ${{ needs.changes.outputs.app == 'true' && !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     outputs:
@@ -212,3 +232,20 @@ jobs:
           path: |
             e2e-*.xml
             ~/.maestro/tests/
+
+  # The one check branch protection requires. Passes when every flow passed, or when e2e was skipped
+  # because nothing in the app changed. Fails on drafts, so a draft can't auto-merge on a stale result.
+  result:
+    name: E2E (Android) result
+    needs: [changes, build, flow]
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [ "${{ github.event.pull_request.draft }}" = true ]; then
+            echo "::error::Draft pull request: e2e runs once it is marked ready for review."; exit 1
+          fi
+          if [ "${{ needs.changes.result }}" != success ]; then echo "::error::Could not check what changed."; exit 1; fi
+          if [ "${{ needs.changes.outputs.app }}" != true ]; then echo "No app changes, e2e skipped."; exit 0; fi
+          if [ "${{ needs.build.result }}" = success ] && [ "${{ needs.flow.result }}" = success ]; then exit 0; fi
+          echo "::error::Build: ${{ needs.build.result }}, flows: ${{ needs.flow.result }}"; exit 1
