@@ -2,7 +2,7 @@
 // the public read-only key. The daily sync job (jobs/sync) fills the tables.
 import type { MarketDataProvider } from '../provider';
 import type { ChartRange, Market, PricePoint, StockId } from '../types';
-import { CARD_COLUMNS, rowToSummary, type CardRow, type PriceRow } from './rows';
+import { CARD_COLUMNS, restRoot, rowToSummary, type CardRow, type PriceRow } from './rows';
 
 /** The REST API returns at most this many rows per request. */
 export const PAGE_SIZE = 1000;
@@ -18,7 +18,7 @@ export function createSupabaseProvider(
   fetchFn: typeof fetch = (...args) => fetch(...args),
   today: () => Date = () => new Date(),
 ): MarketDataProvider {
-  const root = `${baseUrl.replace(/\/+$/, '')}/rest/v1`;
+  const root = restRoot(baseUrl);
   const headers = { apikey: anonKey, Authorization: `Bearer ${anonKey}` };
 
   async function get<T>(path: string, range?: [number, number]): Promise<T[]> {
