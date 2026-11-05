@@ -76,6 +76,16 @@ jobs:
           xcrun simctl boot "$UDID"
           xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Swipe.app
 
+      # Maestro's iOS driver can take minutes to start the first time, which used
+      # to fail whichever flow ran first. Start it here, retrying, so flows don't pay.
+      - name: Start the Maestro iOS driver
+        run: |
+          for i in 1 2 3; do
+            maestro hierarchy >/dev/null && exit 0
+            echo "Driver not ready (try $i), retrying."
+          done
+          exit 1
+
       # One simulator, so flows run one after another. Each flow starts from a
       # fresh install, and one failure doesn't stop the rest.
       - name: Run flows

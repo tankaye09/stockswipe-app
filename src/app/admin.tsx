@@ -2,7 +2,7 @@
 // states that are slow to reach by hand. Only in development, internal test
 // and e2e builds (see ADMIN_TOOLS). To change limits for every user, edit the
 // offering metadata in the RevenueCat dashboard instead (see README).
-import { Redirect, router } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button, SectionTitle } from '../components/ui';
@@ -24,13 +24,20 @@ const describe = (l: Partial<Limits> | null) =>
         .join(', ')
     : 'none';
 
+// A link like stockswipe://admin?dailySwipes=2 fills in the fields, so e2e
+// flows can set limits without typing (the iOS number pad drops taps on CI).
+// Nothing is saved until Save is pressed.
+const fromLink = (raw: string | string[] | undefined, fallback: number) =>
+  typeof raw === 'string' ? raw : String(fallback);
+
 export default function AdminScreen({ enabled = ADMIN_TOOLS }: { enabled?: boolean }) {
   const { state, dispatch } = useAppState();
+  const params = useLocalSearchParams<Partial<Record<keyof Limits, string>>>();
   const current = effectiveLimits(state);
   const [draft, setDraft] = useState<Record<keyof Limits, string>>({
-    freeDays: String(current.freeDays),
-    dailySwipes: String(current.dailySwipes),
-    adEvery: String(current.adEvery),
+    freeDays: fromLink(params.freeDays, current.freeDays),
+    dailySwipes: fromLink(params.dailySwipes, current.dailySwipes),
+    adEvery: fromLink(params.adEvery, current.adEvery),
   });
   const [note, setNote] = useState<string | null>(null);
 

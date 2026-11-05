@@ -1,34 +1,17 @@
 # Sets this device's free tier limits on the admin page, then returns to the feed.
-# Pass FREE_DAYS, DAILY_SWIPES and AD_EVERY as env. Scrolls don't centre the
-# element: the admin button and Done sit at the bottom of their pages, which
-# can't scroll to the centre, so iOS would keep scrolling until it timed out.
+# Pass FREE_DAYS, DAILY_SWIPES and AD_EVERY as env. The values come in through
+# a link that fills in the admin fields, because typing on the iOS number pad
+# drops taps on a CI simulator. The flow still presses Save itself.
 appId: com.stockswipe.app
 ---
-- tapOn:
-    id: 'tab-settings'
-- scrollUntilVisible:
-    element:
-      id: 'open-admin'
-    direction: DOWN
-    visibilityPercentage: 100
-- tapOn:
-    id: 'open-admin'
-- assertVisible:
-    id: 'admin'
-- tapOn:
-    id: 'admin-free-days'
-- eraseText: 6
-- inputText: ${FREE_DAYS}
-- tapOn:
-    id: 'admin-daily-swipes'
-- eraseText: 6
-- inputText: ${DAILY_SWIPES}
-- tapOn:
-    id: 'admin-ad-every'
-- eraseText: 6
-- inputText: ${AD_EVERY}
-# Scroll rather than hideKeyboard: on Android, hideKeyboard can press Back
-# and leave the admin page. The small CI screen also puts Save below the fold.
+- runFlow:
+    file: open-link.yaml
+    env:
+      LINK: 'stockswipe://admin?freeDays=${FREE_DAYS}&dailySwipes=${DAILY_SWIPES}&adEvery=${AD_EVERY}'
+- extendedWaitUntil:
+    visible:
+      id: 'admin'
+    timeout: 30000
 - scrollUntilVisible:
     element:
       id: 'admin-save'
