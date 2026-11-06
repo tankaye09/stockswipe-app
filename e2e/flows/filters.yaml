@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: com.needleinhaystack.app
 name: Filters narrow the feed
 ---
 - runFlow: ../subflows/onboard.yaml

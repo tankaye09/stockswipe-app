@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: com.needleinhaystack.app
 name: Swiping left skips without saving
 ---
 - runFlow: ../subflows/onboard.yaml

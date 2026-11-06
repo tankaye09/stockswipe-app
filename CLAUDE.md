@@ -16,10 +16,9 @@ first. The app runs on sample data in `src/data/mock` unless a build turns on li
 database, filled daily by `jobs/sync` from Yahoo, Nasdaq and SGX for private testing only (README "Real stock data").
 There is no real trading in the app. See README.md for the feature map and folder layout.
 
-The app is called Haystack (store listing name "Haystack: Find the needle"). The bundle ID and package
-`com.stockswipe.app`, Expo slug `stockswipe-app` and link scheme `stockswipe` keep the old name on purpose, so the
-existing dev build, EAS project and e2e flows keep working. Change them only with Kaye's go-ahead, before the first
-store release.
+The app is called Haystack (store listing name "Haystack: Find the needle"). The bundle ID and Android package are
+`com.needleinhaystack.app` and the link scheme is `haystack` (Kaye, 6 Nov 2026). Never change them after the first store
+release. The Expo slug stays `stockswipe-app` so the EAS project, update URL and dev-client QR codes keep working.
 
 ## Code standards
 

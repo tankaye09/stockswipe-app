@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: com.needleinhaystack.app
 name: Save and paper buy from a stock page show up in Needles (Watchlist and Trades) and the paper portfolio
 ---
 - runFlow: ../subflows/onboard.yaml

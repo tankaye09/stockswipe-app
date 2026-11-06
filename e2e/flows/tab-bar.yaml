@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: com.needleinhaystack.app
 name: The tab bar switches between the four sections, and Settings opens the privacy policy
 ---
 # Tabs are matched by testID. On iOS a tab's accessibility label is more than its title

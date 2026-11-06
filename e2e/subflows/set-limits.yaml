@@ -2,12 +2,12 @@
 # Pass FREE_DAYS, DAILY_SWIPES and AD_EVERY as env. The values come in through
 # a link that fills in the admin fields, because typing on the iOS number pad
 # drops taps on a CI simulator. The flow still presses Save itself.
-appId: com.stockswipe.app
+appId: com.needleinhaystack.app
 ---
 - runFlow:
     file: open-link.yaml
     env:
-      LINK: 'stockswipe://admin?freeDays=${FREE_DAYS}&dailySwipes=${DAILY_SWIPES}&adEvery=${AD_EVERY}'
+      LINK: 'haystack://admin?freeDays=${FREE_DAYS}&dailySwipes=${DAILY_SWIPES}&adEvery=${AD_EVERY}'
 - extendedWaitUntil:
     visible:
       id: 'admin'
