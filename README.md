@@ -1,4 +1,4 @@
-# Swipe (working name)
+# Haystack
 
 A swipe feed of stocks for iOS and Android. Each card explains a company in plain English, with a price chart and key
 stats. Swipe right to save (or hand off to your broker), swipe left to skip, and practise with paper trading.
@@ -13,21 +13,21 @@ stats. Swipe right to save (or hand off to your broker), swipe left to skip, and
 
 ## What's in the MVP
 
-| Feature              | Where                                                                         |
-| -------------------- | ----------------------------------------------------------------------------- |
-| Interest onboarding  | `src/app/onboarding.tsx`                                                      |
-| Swipe feed           | `src/app/(tabs)/index.tsx`, `src/components/SwipeDeck.tsx`                    |
-| Explainable feed     | `src/feed/feedEngine.ts` (4 liked / 3 news / 3 wildcard per 10, with reasons) |
-| Save / Trade mode    | Toggle on the feed; right-swipe saves or opens your broker, with undo         |
-| Filters              | `src/app/filters.tsx` (sector, size, theme, earnings soon)                    |
-| Stock detail         | `src/app/stock/[id].tsx` (breakdown, chart ranges, stats, news)               |
-| Paper trading        | `src/components/PaperTradePanel.tsx`, `src/state/rules.ts` (buy/sell/short)   |
-| Watchlist, portfolio | `src/app/(tabs)/watchlist.tsx`, `src/app/(tabs)/portfolio.tsx`                |
-| Broker hand-off      | `src/broker/brokers.ts` (moomoo, Tiger, IBKR)                                 |
-| Free limits and ads  | `src/state/rules.ts`, `src/monetization/` (see Revenue below)                 |
-| Premium paywall      | `src/app/paywall.tsx`, `src/monetization/purchases.ts` (RevenueCat)           |
-| Admin page           | `src/app/admin.tsx` (test builds only: try limits on one device)              |
-| US and SGX           | Both markets in sample data; pick in onboarding or Settings                   |
+| Feature             | Where                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| Interest onboarding | `src/app/onboarding.tsx`                                                              |
+| Stack (swipe feed)  | `src/app/(tabs)/index.tsx`, `src/components/SwipeDeck.tsx`                            |
+| Explainable feed    | `src/feed/feedEngine.ts` (4 liked / 3 news / 3 wildcard per 10, with reasons)         |
+| Save / Trade mode   | Toggle on the feed; right-swipe saves or opens your broker, with undo                 |
+| Filters             | `src/app/filters.tsx` (sector, size, theme, earnings soon)                            |
+| Stock detail        | `src/app/stock/[id].tsx` (breakdown, chart ranges, stats, news)                       |
+| Paper trading       | `src/components/PaperTradePanel.tsx`, `src/state/rules.ts` (buy/sell/short)           |
+| Needles, portfolio  | `src/app/(tabs)/watchlist.tsx` (Watchlist and Trades), `src/app/(tabs)/portfolio.tsx` |
+| Broker hand-off     | `src/broker/brokers.ts` (moomoo, Tiger, IBKR)                                         |
+| Free limits and ads | `src/state/rules.ts`, `src/monetization/` (see Revenue below)                         |
+| Premium paywall     | `src/app/paywall.tsx`, `src/monetization/purchases.ts` (RevenueCat)                   |
+| Admin page          | `src/app/admin.tsx` (test builds only: try limits on one device)                      |
+| US and SGX          | Both markets in sample data; pick in onboarding or Settings                           |
 
 ## Revenue
 

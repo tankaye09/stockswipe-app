@@ -1,5 +1,5 @@
 # Opens a deep link the same way on both platforms. iOS first asks
-# 'Open in "Swipe"?' for a link from outside the app, and if nobody answers, the
+# 'Open in "Haystack"?' for a link from outside the app, and if nobody answers, the
 # dialog stays up over every later flow. On a CI simulator the prompt can take
 # 20 seconds or more to show up, and iOS doesn't always ask (it may remember the
 # answer), so iOS waits for it without failing and taps Open if it came.
@@ -12,7 +12,7 @@ appId: com.stockswipe.app
       platform: iOS
     commands:
       - extendedWaitUntil:
-          visible: 'Open in .Swipe.\?'
+          visible: 'Open in .Haystack.\?'
           timeout: 40000
           optional: true
       # A tap while the prompt is still animating in can miss and leave it up,
@@ -24,6 +24,6 @@ appId: com.stockswipe.app
           optional: true
       - runFlow:
           when:
-            visible: 'Open in .Swipe.\?'
+            visible: 'Open in .Haystack.\?'
           commands:
             - tapOn: 'Open'

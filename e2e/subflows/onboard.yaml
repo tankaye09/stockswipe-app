@@ -3,11 +3,11 @@
 # in parallel on separate devices.
 appId: com.stockswipe.app
 ---
-# A system prompt left over from an earlier flow (iOS asks 'Open in "Swipe"?'
+# A system prompt left over from an earlier flow (iOS asks 'Open in "Haystack"?'
 # for deep links) would cover the app, so close it first.
 - runFlow:
     when:
-      visible: 'Open in .Swipe.\?'
+      visible: 'Open in .Haystack.\?'
     commands:
       - tapOn: 'Cancel'
 - stopApp

@@ -33,7 +33,10 @@ export interface AppState {
   filters: FeedFilters;
   swipeMode: SwipeMode;
   broker: BrokerId | null;
+  /** Needles > Watchlist: stocks saved with a right-swipe or the Save button. */
   watchlist: StockId[];
+  /** Needles > Trades: stocks paper traded or handed off to a broker, most recent first. */
+  traded: StockId[];
   /** Recently shown, so the feed avoids repeats. Capped. */
   seen: StockId[];
   swipesToday: { date: string; count: number };

@@ -75,16 +75,37 @@ describe('Layouts', () => {
     for (const name of ['index', 'watchlist', 'portfolio', 'settings']) {
       expect(await screen.findByTestId(`screen-${name}`)).toBeOnTheScreen();
     }
+    // The feed tab is the Stack, and saved and traded stocks are the Needles in it.
+    expect(screen.getByTestId('screen-index')).toHaveAccessibleName('Stack');
+    expect(screen.getByTestId('screen-watchlist')).toHaveAccessibleName('Needles');
     for (const icon of ['discover', 'watchlist', 'paper', 'settings']) {
       expect(screen.getByTestId(`tab-icon-${icon}`)).toBeOnTheScreen();
     }
   });
 });
 
-describe('Watchlist', () => {
-  it('shows an empty state', async () => {
+describe('Needles', () => {
+  it('shows an empty state for each section', async () => {
     await renderWithState(<WatchlistScreen />);
+    expect(screen.getByTestId('needles-watchlist')).toBeSelected();
     expect(screen.getByText('Nothing saved yet')).toBeOnTheScreen();
+    await user().press(screen.getByTestId('needles-trades'));
+    expect(screen.getByTestId('needles-trades')).toBeSelected();
+    expect(screen.getByTestId('trades-empty')).toHaveTextContent(/No trades yet/);
+  });
+
+  it('lists traded stocks under Trades, opens and removes them', async () => {
+    await renderWithState(<WatchlistScreen />, { watchlist: [idOf('D05')], traded: [idOf('NVDA')] });
+    await user().press(screen.getByTestId('needles-trades'));
+    expect(await screen.findByText('NVIDIA')).toBeOnTheScreen();
+    expect(screen.queryByText('DBS Group')).not.toBeOnTheScreen();
+    await user().press(screen.getByTestId(`traded-${idOf('NVDA')}`));
+    expect(router.push).toHaveBeenCalledWith('/stock/US%3ANVDA');
+    await user().press(screen.getByRole('button', { name: 'Remove NVDA' }));
+    await waitFor(async () => expect((await persisted()).traded).toEqual([]));
+    expect(screen.getByTestId('trades-empty')).toBeOnTheScreen();
+    await user().press(screen.getByTestId('needles-watchlist'));
+    expect(await screen.findByText('DBS Group')).toBeOnTheScreen();
   });
 
   it('lists saved stocks, opens and removes them', async () => {

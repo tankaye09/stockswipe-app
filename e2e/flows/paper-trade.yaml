@@ -1,5 +1,5 @@
 appId: com.stockswipe.app
-name: Save and paper buy from a stock page show up in the watchlist and paper portfolio
+name: Save and paper buy from a stock page show up in Needles (Watchlist and Trades) and the paper portfolio
 ---
 - runFlow: ../subflows/onboard.yaml
 - tapOn:
@@ -48,3 +48,8 @@ name: Save and paper buy from a stock page show up in the watchlist and paper po
     id: 'tab-watchlist'
 - assertVisible:
     id: 'watchlist'
+# The paper buy also keeps the stock under Trades.
+- tapOn:
+    id: 'needles-trades'
+- assertVisible:
+    id: 'trades'

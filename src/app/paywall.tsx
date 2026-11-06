@@ -69,7 +69,7 @@ export default function PaywallScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} testID="paywall">
-      <Text style={styles.title}>Swipe Premium</Text>
+      <Text style={styles.title}>Haystack Premium</Text>
       <View style={styles.perks}>
         <Perk icon="infinity" text={`Unlimited swipes (free is ${limits.dailySwipes} a day)`} />
         <Perk icon="ban" text="No ads in your feed" />
@@ -122,8 +122,8 @@ export default function PaywallScreen() {
         </Text>
       )}
       <Text style={styles.fine}>
-        Renews automatically until you cancel. Cancel any time in your App Store or Google Play subscriptions. Swipe is
-        for information and education only and is not financial advice.
+        Renews automatically until you cancel. Cancel any time in your App Store or Google Play subscriptions. Haystack
+        is for information and education only and is not financial advice.
       </Text>
     </ScrollView>
   );

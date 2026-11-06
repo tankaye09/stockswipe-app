@@ -68,6 +68,40 @@ export function Button({
   );
 }
 
+/** A pill-shaped choice between a few options, such as Save / Trade. Each option gets the testID `${testIDPrefix}-${value}`. */
+export function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+  testIDPrefix,
+}: {
+  options: readonly { value: T; label: string; icon: IconName }[];
+  value: T;
+  onChange: (value: T) => void;
+  testIDPrefix: string;
+}) {
+  return (
+    <View style={styles.segmented} accessibilityRole="radiogroup">
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <Pressable
+            key={o.value}
+            testID={`${testIDPrefix}-${o.value}`}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: on }}
+            onPress={() => onChange(o.value)}
+            style={[styles.segment, on && styles.segmentOn]}
+          >
+            <Icon name={o.icon} size={16} color={on ? colors.text : colors.textFaint} />
+            <Text style={[styles.segmentText, on && styles.segmentTextOn]}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return <Text style={styles.section}>{children}</Text>;
 }
@@ -109,6 +143,18 @@ const styles = StyleSheet.create({
   danger: { backgroundColor: colors.down },
   disabled: { opacity: 0.4 },
   buttonText: { fontWeight: '700', fontSize: 16 },
+  segmented: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 999, padding: 3 },
+  segment: {
+    paddingHorizontal: space(3.5),
+    paddingVertical: space(1.5),
+    borderRadius: 999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(1.5),
+  },
+  segmentOn: { backgroundColor: colors.cardAlt },
+  segmentText: { color: colors.textFaint, fontWeight: '700' },
+  segmentTextOn: { color: colors.text },
   section: {
     color: colors.textFaint,
     fontSize: 12,

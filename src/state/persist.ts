@@ -52,6 +52,7 @@ const CHECKS: { [K in keyof Saved]-?: (v: unknown) => boolean } = {
   swipeMode: oneOf(['save', 'trade']),
   broker: (v) => v === null || oneOf(BROKERS.map((b) => b.id))(v),
   watchlist: listOf(isStockId),
+  traded: listOf(isStockId),
   seen: listOf(isStockId),
   swipesToday: (v) => isObj(v) && isDate(v.date) && isNum(v.count) && v.count >= 0,
   premium: (v) => typeof v === 'boolean',

@@ -1,7 +1,7 @@
 name: Preview
 
 # Publishes each pull request's JS as an EAS Update and comments a QR code on the PR. Scan it with
-# the camera on a phone that has the Swipe development build installed to try the change in seconds,
+# the camera on a phone that has the Haystack development build installed to try the change in seconds,
 # without a new build. Needs the EXPO_TOKEN secret and an Expo project ID in app.json (`eas init`);
 # until both exist this skips. Changes to native code (new native packages, app.json plugins) need a
 # new development build instead (the "Development build" workflow).

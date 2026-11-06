@@ -25,7 +25,7 @@ echo "::group::Recent app logs"
 if [ "$android" = 1 ]; then
   adb logcat -d -s ReactNativeJS:V AndroidRuntime:E | tail -n 100
 else
-  xcrun simctl spawn booted log show --last 2m --style compact --predicate 'process == "Swipe"' | tail -n 100
+  xcrun simctl spawn booted log show --last 2m --style compact --predicate 'process == "Haystack"' | tail -n 100
 fi
 echo "::endgroup::"
 exit 1
