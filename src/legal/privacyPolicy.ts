@@ -11,9 +11,8 @@ export interface PolicySection {
   bullets?: string[];
 }
 
-/** Who runs the app. Fill in before the policy is shared outside the beta. */
-export const OPERATOR_NAME = "[Kaye's full legal name]";
-export const PRIVACY_EMAIL = '[privacy contact email]';
+/** Where people send privacy requests. Change it here and run `npm run privacy`. */
+export const PRIVACY_EMAIL = 'heystack.support@gmail.com';
 export const POLICY_UPDATED = '6 November 2026';
 
 export const POLICY_TITLE = 'Haystack privacy policy';
@@ -22,7 +21,7 @@ export const PRIVACY_POLICY: PolicySection[] = [
   {
     heading: 'Who we are',
     paragraphs: [
-      `This policy explains what information the Haystack app ("Haystack", "we", "us") collects, why, and the choices you have. Haystack is run by ${OPERATOR_NAME}, an individual based in Singapore, until a company is set up. We follow Singapore's Personal Data Protection Act 2012 (PDPA).`,
+      `This policy explains what information the Haystack app ("Haystack", "we", "us") collects, why, and the choices you have. Haystack is run by an individual developer based in Singapore, until a company is set up. We follow Singapore's Personal Data Protection Act 2012 (PDPA).`,
     ],
   },
   {
@@ -91,7 +90,9 @@ export const PRIVACY_POLICY: PolicySection[] = [
   },
   {
     heading: 'Contact and Data Protection Officer',
-    paragraphs: [`Data Protection Officer: ${OPERATOR_NAME}. Email: ${PRIVACY_EMAIL}.`],
+    paragraphs: [
+      `Questions, requests or complaints about your data go to our Data Protection Officer at ${PRIVACY_EMAIL}.`,
+    ],
   },
 ];
 

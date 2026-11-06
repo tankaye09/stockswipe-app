@@ -4,7 +4,7 @@ Last updated: 6 November 2026
 
 ## Who we are
 
-This policy explains what information the Haystack app ("Haystack", "we", "us") collects, why, and the choices you have. Haystack is run by [Kaye's full legal name], an individual based in Singapore, until a company is set up. We follow Singapore's Personal Data Protection Act 2012 (PDPA).
+This policy explains what information the Haystack app ("Haystack", "we", "us") collects, why, and the choices you have. Haystack is run by an individual developer based in Singapore, until a company is set up. We follow Singapore's Personal Data Protection Act 2012 (PDPA).
 
 ## The short version
 
@@ -42,7 +42,7 @@ Data on your device stays until you delete it. RevenueCat keeps purchase records
 
 ## Your choices and rights
 
-Under the PDPA you can ask to access or correct personal data we hold about you, or withdraw consent to its use. Because we don't hold accounts, most of your data is on your own phone, and you can view or delete it there. For purchase records, email [privacy contact email] and we'll work with RevenueCat to handle it. To stop seeing ads, subscribe to Premium. You can also reset your device's advertising ID in your phone's settings.
+Under the PDPA you can ask to access or correct personal data we hold about you, or withdraw consent to its use. Because we don't hold accounts, most of your data is on your own phone, and you can view or delete it there. For purchase records, email heystack.support@gmail.com and we'll work with RevenueCat to handle it. To stop seeing ads, subscribe to Premium. You can also reset your device's advertising ID in your phone's settings.
 
 ## Children
 
@@ -62,4 +62,4 @@ If we change this policy, we'll update the date at the top and, for significant 
 
 ## Contact and Data Protection Officer
 
-Data Protection Officer: [Kaye's full legal name]. Email: [privacy contact email].
+Questions, requests or complaints about your data go to our Data Protection Officer at heystack.support@gmail.com.
