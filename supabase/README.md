@@ -47,6 +47,13 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 
 The feed only shows stocks that have a price and a sector, so it grows as profiles fill in.
 
+## 5. Live data on your phone without a computer
+
+Add the anon key as a third GitHub secret, `SUPABASE_ANON_KEY`. PR previews (`preview.yml`) and the `main` update
+published after every merge (`update-main.yml`) then use live data. Open them in the Swipe development build: scan the
+QR code on the PR or in the "Update main" run summary, or in the app's launcher go to Extensions and pick the `main`
+branch.
+
 ## Notes
 
 - **Licensing:** Yahoo, Nasdaq and SGX data are fine for private testing, not for a public store release. Switch the
