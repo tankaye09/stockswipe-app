@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: needle.inhaystack.app
 name: Subscribing to Premium from Settings (test purchases)
 ---
 - runFlow: ../subflows/onboard.yaml

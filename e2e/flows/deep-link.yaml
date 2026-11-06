@@ -1,11 +1,11 @@
-appId: com.stockswipe.app
+appId: needle.inhaystack.app
 name: Deep links open a stock, and a malformed one shows not found instead of crashing
 ---
 - runFlow: ../subflows/onboard.yaml
 - runFlow:
     file: ../subflows/open-link.yaml
     env:
-      LINK: 'stockswipe://stock/US%3AAAPL'
+      LINK: 'haystack://stock/US%3AAAPL'
 # The stock screen can take a while to appear on a CI simulator after the link.
 - extendedWaitUntil:
     visible:
@@ -16,10 +16,10 @@ name: Deep links open a stock, and a malformed one shows not found instead of cr
 - runFlow:
     file: ../subflows/open-link.yaml
     env:
-      LINK: 'stockswipe://stock/%E0%A4%A'
+      LINK: 'haystack://stock/%E0%A4%A'
 - assertVisible: 'Stock not found.'
 - runFlow:
     file: ../subflows/open-link.yaml
     env:
-      LINK: 'stockswipe://stock/US%3A..%2F..%2Fsecret'
+      LINK: 'haystack://stock/US%3A..%2F..%2Fsecret'
 - assertVisible: 'Stock not found.'

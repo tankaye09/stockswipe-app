@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: needle.inhaystack.app
 name: Daily swipe limit after the free trial, then Premium unlocks it
 ---
 # Uses the admin page (only in test builds) to set a tiny limit on this device,

@@ -24,7 +24,7 @@ const describe = (l: Partial<Limits> | null) =>
         .join(', ')
     : 'none';
 
-// A link like stockswipe://admin?dailySwipes=2 fills in the fields, so e2e
+// A link like haystack://admin?dailySwipes=2 fills in the fields, so e2e
 // flows can set limits without typing (the iOS number pad drops taps on CI).
 // Nothing is saved until Save is pressed.
 const fromLink = (raw: string | string[] | undefined, fallback: number) =>

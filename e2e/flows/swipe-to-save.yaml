@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: needle.inhaystack.app
 name: Swiping right saves to Needles
 ---
 - runFlow: ../subflows/onboard.yaml

@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: needle.inhaystack.app
 name: Onboarding leads to the feed
 ---
 - runFlow: ../subflows/onboard.yaml

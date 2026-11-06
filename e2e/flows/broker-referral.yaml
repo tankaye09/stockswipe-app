@@ -1,4 +1,4 @@
-appId: com.stockswipe.app
+appId: needle.inhaystack.app
 name: Users without a broker see sign-up links with a referral disclosure
 ---
 - runFlow: ../subflows/onboard.yaml
