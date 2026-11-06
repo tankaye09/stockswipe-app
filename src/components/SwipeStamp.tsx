@@ -1,20 +1,12 @@
 // The hay and needle graphics, used on the swipe stamps and on the buttons
-// under the deck. Skipping a card is hay: a few loose, dull straws. Keeping
+// under the deck. Skipping a card is hay: one loose, dull straw. Keeping
 // it is the needle: golden, with a sparkle. Drawn with react-native-svg so
 // they look the same on iOS and Android.
 import React from 'react';
 import Svg, { Defs, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
-/** Loose straws in muted, slightly different tones, as [path, colour, width]. */
-const STRAWS: [string, string, number][] = [
-  ['M22 74 L70 22', '#857756', 3.4],
-  ['M30 80 L74 34', '#9A8B66', 3.4],
-  ['M18 62 L58 20', '#7A6F52', 3],
-  ['M40 82 L82 42', '#8C7E5C', 3],
-  ['M26 66 L80 50', '#968862', 3],
-  ['M34 30 L62 78', '#7D7154', 2.8],
-  ['M50 84 L66 58', '#9C8E6A', 2.6],
-];
+const STRAW = '#9A8B66';
+const STRAW_NODE = '#75694C';
 
 /** A four-pointed sparkle centred on (x, y). */
 const sparkle = (x: number, y: number, r: number) => {
@@ -25,13 +17,15 @@ const sparkle = (x: number, y: number, r: number) => {
   );
 };
 
-/** The hay: a few loose, dull straws. */
+/** The hay: a single loose, dull straw with a frayed tip, leaning the other way to the needle. */
 export function Hay({ size }: { size: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100">
-      {STRAWS.map(([d, color, width]) => (
-        <Path key={d} d={d} stroke={color} strokeWidth={width} strokeLinecap="round" fill="none" />
-      ))}
+      <G transform="rotate(-20 50 50)" fill="none" strokeLinecap="round">
+        <Path d="M50 90 Q47 60 50 28" stroke={STRAW} strokeWidth={6.5} />
+        <Path d="M50 28 L46 14 M50 28 L51 11 M50 28 L55 15" stroke={STRAW} strokeWidth={2.6} />
+        <Path d="M45 58 H52.5" stroke={STRAW_NODE} strokeWidth={3} />
+      </G>
     </Svg>
   );
 }
