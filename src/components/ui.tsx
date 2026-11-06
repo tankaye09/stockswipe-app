@@ -1,6 +1,8 @@
 // Small shared building blocks so screens stay consistent.
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { USING_SAMPLE_DATA } from '../data';
+import { shortDisclaimer } from '../legal/disclaimer';
 import { colors, radius, space } from '../theme';
 import { Icon, type IconName } from './Icon';
 
@@ -111,7 +113,11 @@ export function Row({ children, style }: { children: React.ReactNode; style?: Vi
 }
 
 export function Disclaimer() {
-  return <Text style={styles.disclaimer}>For information and education only. Not financial advice. Sample data.</Text>;
+  return (
+    <Text style={styles.disclaimer} testID="disclaimer">
+      {shortDisclaimer(USING_SAMPLE_DATA)}
+    </Text>
+  );
 }
 
 const styles = StyleSheet.create({

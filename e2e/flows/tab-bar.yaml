@@ -1,5 +1,5 @@
 appId: com.stockswipe.app
-name: The tab bar switches between the four sections
+name: The tab bar switches between the four sections, and Settings opens the privacy policy
 ---
 # Tabs are matched by testID. On iOS a tab's accessibility label is more than its title
 # (for example "Watchlist, tab, 2 of 4"), so matching the title text fails there.
@@ -20,3 +20,17 @@ name: The tab bar switches between the four sections
     id: 'tab-discover'
 - assertVisible:
     id: 'deck'
+- tapOn:
+    id: 'tab-settings'
+# The privacy policy and the full disclaimer sit under About, at the end of Settings.
+- scrollUntilVisible:
+    element:
+      id: 'open-privacy'
+    direction: DOWN
+- assertVisible:
+    id: 'about-disclaimer'
+- tapOn:
+    id: 'open-privacy'
+- assertVisible:
+    id: 'privacy-policy'
+- assertVisible: 'Haystack privacy policy'

@@ -7,6 +7,7 @@ import { Button, Chip, Row, SectionTitle } from '../../components/ui';
 import { DATA_NOTE } from '../../data';
 import type { Market, Theme } from '../../data/types';
 import { ALL_THEMES, THEME_ICON, THEME_LABELS } from '../../feed/themes';
+import { ABOUT_DISCLAIMER } from '../../legal/disclaimer';
 import { ADMIN_TOOLS } from '../../monetization/config';
 import { purchases } from '../../monetization/purchases';
 import { effectiveLimits, freeDaysLeft } from '../../state/rules';
@@ -152,10 +153,12 @@ export default function SettingsScreen() {
       )}
 
       <SectionTitle>About</SectionTitle>
-      <Text style={styles.note}>
-        Haystack shows information for learning and discovery. It is not financial advice and does not recommend buying
-        or selling any stock. {DATA_NOTE}
+      <Text style={styles.note} testID="about-disclaimer">
+        {ABOUT_DISCLAIMER} {DATA_NOTE}
       </Text>
+      <Pressable testID="open-privacy" onPress={() => router.push('/privacy')} style={{ paddingVertical: space(3) }}>
+        <Text style={styles.link}>Privacy policy</Text>
+      </Pressable>
       <Button
         testID="reset-all"
         label="Reset app"

@@ -25,6 +25,7 @@ export default function RootLayout() {
           <Stack.Screen name="filters" options={{ presentation: 'modal', title: 'Filters' }} />
           <Stack.Screen name="paywall" options={{ presentation: 'modal', title: 'Premium' }} />
           <Stack.Screen name="admin" options={{ title: 'Admin' }} />
+          <Stack.Screen name="privacy" options={{ title: 'Privacy policy' }} />
         </Stack>
       </AppStateProvider>
     </SafeAreaProvider>
