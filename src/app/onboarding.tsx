@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Chip, Row, SectionTitle } from '../components/ui';
 import type { Market, Theme } from '../data/types';
+import { ONBOARDING_DISCLAIMER } from '../legal/disclaimer';
 import { ALL_THEMES, THEME_ICON, THEME_LABELS } from '../feed/themes';
 import { useAppState } from '../state/store';
 import { colors, space } from '../theme';
@@ -61,6 +62,12 @@ export default function Onboarding() {
         </Row>
       </ScrollView>
       <View style={styles.footer}>
+        <Text style={styles.disclaimer} testID="onboarding-disclaimer">
+          {ONBOARDING_DISCLAIMER}
+        </Text>
+        <Pressable testID="onboarding-privacy" onPress={() => router.push('/privacy')} style={styles.privacy}>
+          <Text style={styles.link}>Privacy policy</Text>
+        </Pressable>
         <Button
           testID="onboarding-continue"
           label={ready ? 'Start swiping' : `Pick ${Math.max(0, MIN_INTERESTS - interests.length)} more`}
@@ -78,4 +85,7 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 30, fontWeight: '800', marginTop: space(6) },
   sub: { color: colors.textDim, fontSize: 16, lineHeight: 22, marginVertical: space(4) },
   footer: { padding: space(5) },
+  disclaimer: { color: colors.textFaint, fontSize: 12, lineHeight: 17, textAlign: 'center' },
+  privacy: { alignSelf: 'center', paddingVertical: space(2), marginBottom: space(2) },
+  link: { color: colors.accent, fontSize: 13, fontWeight: '600' },
 });

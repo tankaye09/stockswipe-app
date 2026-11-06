@@ -24,7 +24,8 @@ instead, and include steps to reproduce it.
 - **Keep the privacy declarations true.** When you add an SDK that collects
   data (analytics, ads, crash reporting, payments), update
   `ios.privacyManifests` in `app.json`, the App Store privacy labels, the
-  Google Play data safety form and the privacy policy in the same change.
+  Google Play data safety form and the privacy policy (`src/legal/privacyPolicy.ts`, then
+  `npm run privacy` for `PRIVACY.md`) in the same change.
 - **Dependencies:** CI fails on any moderate or worse `npm audit` finding.
   Fix it with `npx expo install --fix`, `npm update`, or a narrow `overrides`
   entry in `package.json`, and remove the override once the parent package

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { brokerById, openInBroker } from '../../broker/brokers';
 import { AdCard, EmptyCard, LimitCard } from '../../components/FeedCards';
 import { StockCard } from '../../components/StockCard';
-import { Hay, Needle } from '../../components/SwipeStamp';
+import { HayCoin, NeedleCoin } from '../../components/SwipeStamp';
 import { SwipeDeck, type SwipeDeckHandle, type SwipeDir } from '../../components/SwipeDeck';
 import { Disclaimer, Segmented } from '../../components/ui';
 import { UndoToast, useUndo } from '../../components/UndoToast';
@@ -16,6 +16,8 @@ import { useFeed, useUniverse, type DeckItem } from '../../feed/useFeed';
 import { effectiveLimits } from '../../state/rules';
 import { useAppState } from '../../state/store';
 import { colors, radius, space } from '../../theme';
+
+const COIN_SIZE = 62;
 
 const SWIPE_MODES = [
   { value: 'save', label: 'Save', icon: 'star' },
@@ -143,7 +145,6 @@ function Feed({ universe }: { universe: StockSummary[] }) {
           render={renderCard}
           onSwipe={onSwipe}
           onTap={(c) => c.kind === 'stock' && router.push(`/stock/${encodeURIComponent(c.item.id)}`)}
-          rightColor={tradeMode ? colors.trade : colors.save}
           canSwipe={(c) => c.kind === 'stock' || c.kind === 'ad'}
         />
       </View>
@@ -154,18 +155,18 @@ function Feed({ universe }: { universe: StockSummary[] }) {
           accessibilityLabel="Skip"
           disabled={!canSwipeTop}
           onPress={() => deckRef.current?.swipe('left')}
-          style={[styles.round, { borderColor: colors.skip }]}
+          style={styles.coin}
         >
-          <Hay size={48} />
+          <HayCoin size={COIN_SIZE} />
         </Pressable>
         <Pressable
           testID="right-button"
           accessibilityLabel={tradeMode ? 'Trade' : 'Save'}
           disabled={!canSwipeTop}
           onPress={() => deckRef.current?.swipe('right')}
-          style={[styles.round, { borderColor: tradeMode ? colors.trade : colors.save }]}
+          style={styles.coin}
         >
-          <Needle size={48} />
+          <NeedleCoin size={COIN_SIZE} />
         </Pressable>
       </View>
       <Disclaimer />
@@ -194,13 +195,5 @@ const styles = StyleSheet.create({
   filterText: { color: colors.text, fontWeight: '600' },
   deck: { flex: 1, marginHorizontal: space(4), marginTop: space(2) },
   actions: { flexDirection: 'row', justifyContent: 'center', gap: space(10), paddingTop: space(4) },
-  round: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.card,
-  },
+  coin: { width: COIN_SIZE, height: COIN_SIZE, borderRadius: COIN_SIZE / 2 },
 });

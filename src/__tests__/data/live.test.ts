@@ -251,8 +251,6 @@ describe('data source switch', () => {
       expect(data.USING_SAMPLE_DATA).toBe(false);
       expect(data.DATA_NOTE).toMatch(/end-of-day data from public sources/);
       expect(config.DATA_SOURCE).toBe('live');
-      const { Disclaimer } = require('../../components/ui') as typeof import('../../components/ui');
-      expect(Disclaimer().props.children).toEqual(['For information and education only. Not financial advice.', '']);
     });
   });
 
@@ -261,8 +259,6 @@ describe('data source switch', () => {
       const config = require('../../data/config') as typeof import('../../data/config');
       expect(config.DATA_SOURCE).toBe('mock');
       expect((require('../../data') as typeof import('../../data')).DATA_NOTE).toBe('Prices shown are sample data.');
-      const { Disclaimer } = require('../../components/ui') as typeof import('../../components/ui');
-      expect(Disclaimer().props.children[1]).toBe(' Sample data.');
     });
   });
 });

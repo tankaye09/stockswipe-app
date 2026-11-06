@@ -2,8 +2,8 @@
 // Animated, so it runs in Expo Go with no extra native modules.
 import React, { forwardRef, useImperativeHandle, useLayoutEffect, useState } from 'react';
 import { Animated, Dimensions, PanResponder, StyleSheet, View } from 'react-native';
-import { colors, radius } from '../theme';
-import { Hay, Needle } from './SwipeStamp';
+import { radius } from '../theme';
+import { HayCoin, NeedleCoin } from './SwipeStamp';
 
 export type SwipeDir = 'left' | 'right';
 
@@ -17,8 +17,6 @@ interface Props<T> {
   render: (item: T) => React.ReactNode;
   onSwipe: (item: T, dir: SwipeDir) => void;
   onTap?: (item: T) => void;
-  /** Ring colour of the needle stamp, so it matches the Save or Trade mode. */
-  rightColor: string;
   /** Some cards (ads, limits) can disable swiping. */
   canSwipe?: (item: T) => boolean;
 }
@@ -26,7 +24,7 @@ interface Props<T> {
 const SCREEN_W = Dimensions.get('window').width;
 const THRESHOLD = SCREEN_W * 0.28;
 const TAP_SLOP = 6;
-const STAMP_SIZE = 132;
+const STAMP_SIZE = 112;
 
 /**
  * How a stamp grows as the card is dragged `dir` (1 = right, -1 = left):
@@ -94,7 +92,7 @@ function createGestures<T>(initialProps: Props<T>) {
 }
 
 function SwipeDeckInner<T>(props: Props<T>, ref: React.Ref<SwipeDeckHandle>) {
-  const { items, keyOf, render, rightColor } = props;
+  const { items, keyOf, render } = props;
   // Gestures are created once and kept in sync with the latest props.
   const [gestures] = useState(() => createGestures(props));
   const { pos, fling, responder } = gestures;
@@ -136,16 +134,16 @@ function SwipeDeckInner<T>(props: Props<T>, ref: React.Ref<SwipeDeckHandle>) {
           <Animated.View
             testID="stamp-needle"
             accessibilityLabel="Needle"
-            style={[styles.stamp, { borderColor: rightColor }, stampMotion(pos.x, 1)]}
+            style={[styles.stamp, styles.needleGlow, stampMotion(pos.x, 1)]}
           >
-            <Needle size={STAMP_SIZE * 0.7} />
+            <NeedleCoin size={STAMP_SIZE} />
           </Animated.View>
           <Animated.View
             testID="stamp-hay"
             accessibilityLabel="Hay"
-            style={[styles.stamp, { borderColor: colors.skip }, stampMotion(pos.x, -1)]}
+            style={[styles.stamp, styles.hayShadow, stampMotion(pos.x, -1)]}
           >
-            <Hay size={STAMP_SIZE * 0.7} />
+            <HayCoin size={STAMP_SIZE} />
           </Animated.View>
         </View>
       </Animated.View>
@@ -174,9 +172,8 @@ const styles = StyleSheet.create({
     width: STAMP_SIZE,
     height: STAMP_SIZE,
     borderRadius: STAMP_SIZE / 2,
-    borderWidth: 3,
-    backgroundColor: 'rgba(11, 15, 20, 0.82)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
+  // Soft shadows lift the coins off the card: dark under the hay, a gold glow under the needle.
+  hayShadow: { boxShadow: '0 10px 28px rgba(0, 0, 0, 0.45)' },
+  needleGlow: { boxShadow: '0 10px 28px rgba(245, 184, 61, 0.35)' },
 });
