@@ -47,8 +47,9 @@ it('shows the top card and the next one behind it', async () => {
   await setup();
   expect(screen.getByText('card a')).toBeOnTheScreen();
   expect(screen.getByText('card b')).toBeOnTheScreen();
-  expect(screen.getByText('NEEDLE')).toBeOnTheScreen();
-  expect(screen.getByText('HAY')).toBeOnTheScreen();
+  // Graphics, not words, so they are found by testID and named for screen readers.
+  expect(screen.getByTestId('stamp-needle')).toHaveAccessibleName('Needle');
+  expect(screen.getByTestId('stamp-hay')).toHaveAccessibleName('Hay');
 });
 
 it('renders nothing when empty', async () => {

@@ -1,8 +1,9 @@
 // A Tinder-style card stack built on React Native's own PanResponder and
 // Animated, so it runs in Expo Go with no extra native modules.
 import React, { forwardRef, useImperativeHandle, useLayoutEffect, useState } from 'react';
-import { Animated, Dimensions, PanResponder, StyleSheet, Text, View } from 'react-native';
+import { Animated, Dimensions, PanResponder, StyleSheet, View } from 'react-native';
 import { colors, radius } from '../theme';
+import { Hay, Needle } from './SwipeStamp';
 
 export type SwipeDir = 'left' | 'right';
 
@@ -16,18 +17,31 @@ interface Props<T> {
   render: (item: T) => React.ReactNode;
   onSwipe: (item: T, dir: SwipeDir) => void;
   onTap?: (item: T) => void;
-  /** Colour of the NEEDLE stamp, so it matches the Save or Trade mode. */
+  /** Ring colour of the needle stamp, so it matches the Save or Trade mode. */
   rightColor: string;
   /** Some cards (ads, limits) can disable swiping. */
   canSwipe?: (item: T) => boolean;
 }
 
-/** Stamps shown while dragging: a skipped card is hay, a kept one is a needle. */
-export const STAMPS = { left: 'HAY', right: 'NEEDLE' } as const;
-
 const SCREEN_W = Dimensions.get('window').width;
 const THRESHOLD = SCREEN_W * 0.28;
 const TAP_SLOP = 6;
+const STAMP_SIZE = 132;
+
+/**
+ * How a stamp grows as the card is dragged `dir` (1 = right, -1 = left):
+ * it fades in, overshoots a little just before the swipe counts, then settles.
+ */
+function stampMotion(x: Animated.Value, dir: 1 | -1) {
+  // Distance dragged towards this stamp's side; negative when dragged the other way.
+  const progress = Animated.multiply(x, dir);
+  const grow = <V extends number | string>(outputRange: V[]) =>
+    progress.interpolate({ inputRange: [0, THRESHOLD * 0.75, THRESHOLD], outputRange, extrapolate: 'clamp' });
+  return {
+    opacity: grow([0, 1, 1]),
+    transform: [{ scale: grow([0.4, 1.15, 1]) }, { rotate: grow([`${-25 * dir}deg`, `${-4 * dir}deg`, '0deg']) }],
+  };
+}
 
 /** Creates the drag position, pan responder and fling animation for one deck. */
 function createGestures<T>(initialProps: Props<T>) {
@@ -95,8 +109,6 @@ function SwipeDeckInner<T>(props: Props<T>, ref: React.Ref<SwipeDeckHandle>) {
   const next = items[1];
 
   const rotate = pos.x.interpolate({ inputRange: [-SCREEN_W, 0, SCREEN_W], outputRange: ['-12deg', '0deg', '12deg'] });
-  const rightOpacity = pos.x.interpolate({ inputRange: [0, THRESHOLD], outputRange: [0, 1], extrapolate: 'clamp' });
-  const leftOpacity = pos.x.interpolate({ inputRange: [-THRESHOLD, 0], outputRange: [1, 0], extrapolate: 'clamp' });
   const nextScale = pos.x.interpolate({
     inputRange: [-SCREEN_W, 0, SCREEN_W],
     outputRange: [1, 0.95, 1],
@@ -120,12 +132,22 @@ function SwipeDeckInner<T>(props: Props<T>, ref: React.Ref<SwipeDeckHandle>) {
         {...responder.panHandlers}
       >
         {render(top)}
-        <Animated.View style={[styles.stamp, styles.stampRight, { borderColor: rightColor, opacity: rightOpacity }]}>
-          <Text style={[styles.stampText, { color: rightColor }]}>{STAMPS.right}</Text>
-        </Animated.View>
-        <Animated.View style={[styles.stamp, styles.stampLeft, { borderColor: colors.skip, opacity: leftOpacity }]}>
-          <Text style={[styles.stampText, { color: colors.skip }]}>{STAMPS.left}</Text>
-        </Animated.View>
+        <View style={styles.stampLayer} pointerEvents="none">
+          <Animated.View
+            testID="stamp-needle"
+            accessibilityLabel="Needle"
+            style={[styles.stamp, { borderColor: rightColor }, stampMotion(pos.x, 1)]}
+          >
+            <Needle size={STAMP_SIZE * 0.7} />
+          </Animated.View>
+          <Animated.View
+            testID="stamp-hay"
+            accessibilityLabel="Hay"
+            style={[styles.stamp, { borderColor: colors.skip }, stampMotion(pos.x, -1)]}
+          >
+            <Hay size={STAMP_SIZE * 0.7} />
+          </Animated.View>
+        </View>
       </Animated.View>
     </View>
   );
@@ -138,15 +160,23 @@ export const SwipeDeck = forwardRef(SwipeDeckInner) as <T>(
 const styles = StyleSheet.create({
   wrap: { flex: 1 },
   card: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: radius.lg },
+  stampLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   stamp: {
     position: 'absolute',
-    top: 28,
+    width: STAMP_SIZE,
+    height: STAMP_SIZE,
+    borderRadius: STAMP_SIZE / 2,
     borderWidth: 3,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    backgroundColor: 'rgba(11, 15, 20, 0.82)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  stampRight: { left: 24, transform: [{ rotate: '-14deg' }] },
-  stampLeft: { right: 24, transform: [{ rotate: '14deg' }] },
-  stampText: { fontSize: 28, fontWeight: '900', letterSpacing: 2 },
 });
