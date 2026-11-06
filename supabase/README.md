@@ -54,6 +54,22 @@ published after every merge (`update-main.yml`) then use live data. Open them in
 QR code on the PR or in the "Update main" run summary, or in the app's launcher go to Extensions and pick the `main`
 branch.
 
+## 6. Plain-English breakdowns written by Claude
+
+Without this step, real stocks only show the company's own description. To have Claude write the "What they do", "How
+they make money", "Why people watch" and "Risks to know" sections:
+
+1. Run `migrations/20261106000000_breakdowns.sql` in the SQL Editor **before** merging the app change that reads these
+   columns (the app and the job both expect them).
+2. Create an API key at [platform.claude.com](https://platform.claude.com) → **API keys**, add some credit under
+   **Billing**, and save the key as the GitHub secret `ANTHROPIC_API_KEY`. It stays in GitHub only, never in the app.
+3. The daily sync then writes up to 300 breakdowns a run, biggest companies first, and saves them. Each stock is
+   written once. Raise `breakdown_limit` on a manual run to go faster.
+
+The model defaults to Claude Opus 5.5 (`jobs/sync/breakdown.ts`). To use another one, add the repository **variable**
+(not secret) `SYNC_BREAKDOWN_MODEL`, for example `claude-haiku-5-5`, which costs far less. While a market has any
+written breakdowns, the feed only shows its stocks that have one.
+
 ## Notes
 
 - **Licensing:** Yahoo, Nasdaq and SGX data are fine for private testing, not for a public store release. Switch the

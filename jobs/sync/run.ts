@@ -4,11 +4,13 @@
 //   3. fetch company profiles (sector, industry, description) for a few hundred
 //      stocks that have none or an old one
 //   4. backfill a year of daily closes for a few hundred new stocks
-//   5. save stocks and today's closes, drop delisted stocks and old prices
+//   5. have Claude write plain-English breakdowns for a few hundred stocks
+//   6. save stocks and today's closes, drop delisted stocks and old prices
 // Profiles and backfills are capped per run so Yahoo doesn't rate limit us;
 // the whole list fills in over a few daily runs.
 import type { Market } from '../../src/data/types';
 import type { PriceRow, StockRow } from '../../src/data/live/rows';
+import { applyBreakdown, needsBreakdown, writeBreakdowns, type BreakdownWriter } from './breakdown';
 import { LIST_URLS, MIN_LISTINGS, PARSERS, type Listing } from './lists';
 import type { StockStore } from './store';
 import { capBucket, cardText, mapSector, round, tagThemes, tradingDay } from './transform';
@@ -21,6 +23,8 @@ export interface SyncDeps {
   log(message: string): void;
   now(): Date;
   pause(ms: number): Promise<void>;
+  /** Writes breakdowns; left out when there is no Anthropic key. */
+  writer?: BreakdownWriter;
 }
 
 export interface SyncOptions {
@@ -28,6 +32,8 @@ export interface SyncOptions {
   profileLimit: number;
   /** Stocks whose year of history is backfilled per run. */
   backfillLimit: number;
+  /** Breakdowns written per run. */
+  breakdownLimit: number;
 }
 
 export interface SyncResult {
@@ -36,6 +42,7 @@ export interface SyncResult {
   quoted: number;
   profiled: number;
   backfilled: number;
+  written: number;
   saved: number;
   prices: number;
   removed: number;
@@ -78,6 +85,11 @@ export function newRow(l: Listing, nowIso: string): StockRow {
     one_liner: '',
     summary: '',
     description: '',
+    what_they_do: '',
+    how_they_make_money: '',
+    why_people_watch: '',
+    risks_to_know: '',
+    breakdown_at: null,
     quote_date: null,
     profile_updated_at: null,
     history_backfilled_at: null,
@@ -120,7 +132,8 @@ export function derive(row: StockRow, usdPerSgd: number): StockRow {
       description: row.description,
       dividendYield: row.dividend_yield,
     }),
-    one_liner: oneLiner,
+    // Claude's one-liner, once written, beats the first sentence of the description.
+    one_liner: row.breakdown_at ? row.one_liner : oneLiner,
     summary,
   };
 }
@@ -231,7 +244,17 @@ export async function syncMarket(market: Market, deps: SyncDeps, opts: SyncOptio
     `${market} history`,
   );
 
-  // 5. Save. Today's close goes in for every quoted stock; it replaces a
+  // 5. Breakdowns, for stocks that have a description by now.
+  const written = deps.writer
+    ? await writeBreakdowns(
+        needsBreakdown([...rows.values()], opts.breakdownLimit),
+        deps.writer,
+        (row, b) => rows.set(row.id, applyBreakdown(rows.get(row.id)!, b, nowIso)),
+        deps.log,
+      )
+    : 0;
+
+  // 6. Save. Today's close goes in for every quoted stock; it replaces a
   // backfilled bar for the same day.
   const saved = [...rows.values()].map((r) => derive(r, usdPerSgd));
   // Every saved row was built from a quote above, so it has a price and a quote date.
@@ -251,6 +274,7 @@ export async function syncMarket(market: Market, deps: SyncDeps, opts: SyncOptio
     quoted: quotes.size,
     profiled,
     backfilled,
+    written,
     saved: saved.length,
     prices: uniquePrices.length,
     removed: removed.length,

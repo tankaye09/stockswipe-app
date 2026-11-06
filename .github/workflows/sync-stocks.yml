@@ -5,7 +5,10 @@ name: Sync stock data
 #   US:  23:00 UTC Mon-Fri = 7am SGT Tue-Sat
 #   SGX: 11:00 UTC Mon-Fri = 7pm SGT Mon-Fri
 # Skips quietly until the Supabase secrets are added. Each run takes about
-# 10-15 minutes of Linux time (free while the repo is public).
+# 10-25 minutes of Linux time (free while the repo is public). With the
+# ANTHROPIC_API_KEY secret it also has Claude write plain-English breakdowns
+# for up to 300 stocks a run (the repo variable SYNC_BREAKDOWN_MODEL picks the
+# model).
 on:
   schedule:
     - cron: '0 23 * * 1-5'
@@ -21,6 +24,9 @@ on:
       backfill_limit:
         description: Stocks to backfill a year of prices for this run
         default: '600'
+      breakdown_limit:
+        description: Stock breakdowns for Claude to write this run
+        default: '300'
 
 concurrency:
   group: sync-stocks
@@ -33,12 +39,15 @@ jobs:
   sync:
     name: Sync ${{ inputs.market || (github.event.schedule == '0 23 * * 1-5' && 'US' || 'SGX') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       SYNC_PROFILE_LIMIT: ${{ inputs.profile_limit || '600' }}
       SYNC_BACKFILL_LIMIT: ${{ inputs.backfill_limit || '600' }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      SYNC_BREAKDOWN_LIMIT: ${{ inputs.breakdown_limit || '300' }}
+      SYNC_BREAKDOWN_MODEL: ${{ vars.SYNC_BREAKDOWN_MODEL }}
       MARKET: ${{ inputs.market || (github.event.schedule == '0 23 * * 1-5' && 'US' || 'SGX') }}
     steps:
       - name: Check secrets

@@ -26,6 +26,12 @@ export interface StockRow {
   one_liner: string;
   summary: string;
   description: string;
+  /** Plain-English breakdown written by Claude (jobs/sync/breakdown.ts); empty until written. */
+  what_they_do: string;
+  how_they_make_money: string;
+  why_people_watch: string;
+  risks_to_know: string;
+  breakdown_at: string | null;
   quote_date: string | null;
   profile_updated_at: string | null;
   history_backfilled_at: string | null;
@@ -58,6 +64,10 @@ export const CARD_COLUMNS = [
   'next_earnings',
   'one_liner',
   'summary',
+  'what_they_do',
+  'how_they_make_money',
+  'why_people_watch',
+  'risks_to_know',
 ] as const;
 
 export type CardRow = Pick<StockRow, (typeof CARD_COLUMNS)[number]> & Partial<Pick<StockRow, 'description'>>;
@@ -75,9 +85,9 @@ export const restRoot = (projectUrl: string) =>
 const num = (v: unknown): number | null => (v == null || v === '' || !Number.isFinite(Number(v)) ? null : Number(v));
 
 /**
- * Turns a database row into what the app shows. Real stocks only have the
- * company's own description so far, so the other breakdown parts stay empty
- * and the screens hide them.
+ * Turns a database row into what the app shows. Until Claude has written a
+ * stock's breakdown, it shows the company's own description and the other
+ * parts stay empty, which the screens hide.
  */
 export function rowToSummary(row: CardRow): StockSummary {
   const price = num(row.price) ?? 0;
@@ -101,10 +111,10 @@ export function rowToSummary(row: CardRow): StockSummary {
     },
     breakdown: {
       oneLiner: row.one_liner,
-      whatTheyDo: row.description || row.summary,
-      howTheyMakeMoney: '',
-      whyPeopleWatch: '',
-      risksToKnow: '',
+      whatTheyDo: row.what_they_do || row.description || row.summary,
+      howTheyMakeMoney: row.how_they_make_money ?? '',
+      whyPeopleWatch: row.why_people_watch ?? '',
+      risksToKnow: row.risks_to_know ?? '',
     },
     news: [],
   };

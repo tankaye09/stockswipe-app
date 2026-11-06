@@ -53,7 +53,24 @@ describe('main', () => {
       async () => yahoo,
     );
     expect(results.map((r) => r.market)).toEqual(['US', 'SGX']);
-    expect(sync).toHaveBeenCalledWith('US', expect.anything(), { profileLimit: 5, backfillLimit: 600 });
+    expect(sync).toHaveBeenCalledWith('US', expect.anything(), {
+      profileLimit: 5,
+      backfillLimit: 600,
+      breakdownLimit: 300,
+    });
+    expect(sync.mock.calls[0][1].writer).toBeUndefined();
+  });
+
+  it('writes breakdowns with Claude when the Anthropic key is set', async () => {
+    const sync = jest.spyOn(run, 'syncMarket').mockImplementation(async (market) => ({ market }) as run.SyncResult);
+    await main(
+      ['US'],
+      { ...ENV, ANTHROPIC_API_KEY: 'sk', SYNC_BREAKDOWN_LIMIT: '7' },
+      async () => yahoo,
+      () => {},
+    );
+    expect(sync.mock.calls[0][1].writer).toBeDefined();
+    expect(sync.mock.calls[0][2].breakdownLimit).toBe(7);
   });
 
   it('fetches lists through fetchJson', async () => {

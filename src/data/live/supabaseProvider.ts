@@ -41,12 +41,18 @@ export function createSupabaseProvider(
   return {
     markets: ['US', 'SGX'],
 
+    // Only stocks with a written breakdown. A market with none written yet
+    // shows all its stocks instead, so the feed is never empty.
     async listUniverse(markets: Market[]) {
       if (!markets.length) return [];
-      const rows = await getAll<CardRow>(
-        `stocks?select=${CARD_COLUMNS.join(',')}&market=in.(${markets.join(',')})` +
-          '&price=not.is.null&sector=not.is.null&order=id',
-      );
+      const query = (list: Market[], extra = '') =>
+        getAll<CardRow>(
+          `stocks?select=${CARD_COLUMNS.join(',')}&market=in.(${list.join(',')})` +
+            `&price=not.is.null&sector=not.is.null${extra}&order=id`,
+        );
+      const rows = await query(markets, '&breakdown_at=not.is.null');
+      const missing = markets.filter((m) => !rows.some((r) => r.market === m));
+      if (missing.length) rows.push(...(await query(missing)));
       return rows.map(rowToSummary);
     },
 

@@ -22,6 +22,10 @@ const row = (over: Partial<CardRow> = {}): CardRow => ({
   next_earnings: '2027-02-10',
   one_liner: 'DBS is a bank.',
   summary: 'It lends money.',
+  what_they_do: '',
+  how_they_make_money: '',
+  why_people_watch: '',
+  risks_to_know: '',
   ...over,
 });
 
@@ -78,6 +82,32 @@ describe('rowToSummary', () => {
     });
   });
 
+  it('uses the written breakdown when there is one', () => {
+    expect(
+      rowToSummary(
+        row({
+          what_they_do: 'Runs a bank.',
+          how_they_make_money: 'Interest.',
+          why_people_watch: 'Dividends.',
+          risks_to_know: 'Bad loans.',
+        }),
+      ).breakdown,
+    ).toEqual({
+      oneLiner: 'DBS is a bank.',
+      whatTheyDo: 'Runs a bank.',
+      howTheyMakeMoney: 'Interest.',
+      whyPeopleWatch: 'Dividends.',
+      risksToKnow: 'Bad loans.',
+    });
+    const old = rowToSummary({
+      ...row(),
+      how_they_make_money: undefined,
+      why_people_watch: undefined,
+      risks_to_know: undefined,
+    } as unknown as CardRow);
+    expect(old.breakdown.howTheyMakeMoney).toBe('');
+  });
+
   it('copes with gaps and unknown values', () => {
     const s = rowToSummary(
       row({
@@ -125,18 +155,29 @@ const today = () => new Date('2026-11-05T12:00:00Z');
 describe('createSupabaseProvider', () => {
   it('loads the universe page by page with the read-only key', async () => {
     const page = Array.from({ length: PAGE_SIZE }, (_, i) => row({ id: `SGX:S${i}`, symbol: `S${i}` }));
-    const { fn, urls, headers } = fakeFetch([page, [row()]]);
+    const { fn, urls, headers } = fakeFetch([page, [row()], [row({ id: 'US:A', market: 'US', symbol: 'A' })]]);
     const p = createSupabaseProvider('https://db.example.co/', 'anon', fn, today);
     const list = await p.listUniverse(['US', 'SGX']);
-    expect(list).toHaveLength(PAGE_SIZE + 1);
+    expect(list).toHaveLength(PAGE_SIZE + 2);
+    const columns =
+      'select=id,market,symbol,name,currency,sector,themes,cap_bucket,price,change_pct,market_cap,pe_ratio,' +
+      'dividend_yield,week52_high,week52_low,next_earnings,one_liner,summary,what_they_do,how_they_make_money,' +
+      'why_people_watch,risks_to_know';
+    // Stocks with a written breakdown first; US has none yet, so all US stocks.
     expect(urls[0]).toBe(
-      'https://db.example.co/rest/v1/stocks?select=id,market,symbol,name,currency,sector,themes,cap_bucket,price,' +
-        'change_pct,market_cap,pe_ratio,dividend_yield,week52_high,week52_low,next_earnings,one_liner,summary' +
-        '&market=in.(US,SGX)&price=not.is.null&sector=not.is.null&order=id',
+      `https://db.example.co/rest/v1/stocks?${columns}&market=in.(US,SGX)` +
+        '&price=not.is.null&sector=not.is.null&breakdown_at=not.is.null&order=id',
+    );
+    expect(urls[2]).toBe(
+      `https://db.example.co/rest/v1/stocks?${columns}&market=in.(US)&price=not.is.null&sector=not.is.null&order=id`,
     );
     expect(headers[0]).toEqual({ apikey: 'anon', Authorization: 'Bearer anon', Range: '0-999' });
     expect(headers[1].Range).toBe(`${PAGE_SIZE}-${2 * PAGE_SIZE - 1}`);
     expect(await p.listUniverse([])).toEqual([]);
+    const one = fakeFetch([[row()]]);
+    const sgxOnly = createSupabaseProvider('https://db.example.co', 'anon', one.fn, today);
+    expect(await sgxOnly.listUniverse(['SGX'])).toHaveLength(1);
+    expect(one.fn).toHaveBeenCalledTimes(1);
     expect(p.markets).toEqual(['US', 'SGX']);
   });
 
@@ -210,6 +251,8 @@ describe('data source switch', () => {
       expect(data.USING_SAMPLE_DATA).toBe(false);
       expect(data.DATA_NOTE).toMatch(/end-of-day data from public sources/);
       expect(config.DATA_SOURCE).toBe('live');
+      const { Disclaimer } = require('../../components/ui') as typeof import('../../components/ui');
+      expect(Disclaimer().props.children).toEqual(['For information and education only. Not financial advice.', '']);
     });
   });
 
@@ -218,6 +261,8 @@ describe('data source switch', () => {
       const config = require('../../data/config') as typeof import('../../data/config');
       expect(config.DATA_SOURCE).toBe('mock');
       expect((require('../../data') as typeof import('../../data')).DATA_NOTE).toBe('Prices shown are sample data.');
+      const { Disclaimer } = require('../../components/ui') as typeof import('../../components/ui');
+      expect(Disclaimer().props.children[1]).toBe(' Sample data.');
     });
   });
 });
