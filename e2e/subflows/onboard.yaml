@@ -20,6 +20,9 @@ appId: com.stockswipe.app
 - assertVisible:
     id: 'onboarding-continue'
     enabled: false
+# Testers see that this is not advice before their first swipe.
+- assertVisible:
+    id: 'onboarding-disclaimer'
 - tapOn:
     id: 'interest-gaming'
 - tapOn:

@@ -56,7 +56,8 @@
     "format:check": "prettier --check .",
     "e2e": "maestro test e2e/flows",
     "e2e:parallel": "maestro test --shard-split 2 e2e/flows",
-    "sync": "tsx jobs/sync/main.ts"
+    "sync": "tsx jobs/sync/main.ts",
+    "privacy": "tsx scripts/write-privacy.ts && prettier --write PRIVACY.md"
   },
   "private": true,
   "jest": {
