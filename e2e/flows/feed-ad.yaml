@@ -1,4 +1,4 @@
-appId: needle.inhaystack.app
+appId: com.needleinhaystack.app
 name: Free users see an ad card every 10 swipes, which they can swipe past
 ---
 - runFlow: ../subflows/onboard.yaml

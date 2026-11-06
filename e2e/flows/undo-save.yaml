@@ -1,4 +1,4 @@
-appId: needle.inhaystack.app
+appId: com.needleinhaystack.app
 name: Undo takes a save back
 ---
 - runFlow: ../subflows/onboard.yaml

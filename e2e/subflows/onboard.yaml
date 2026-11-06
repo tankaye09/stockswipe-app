@@ -1,7 +1,7 @@
 # Every flow starts here, from a fresh install: no saved state, watchlist or
 # paper trades carry over from another flow, so flows can run in any order or
 # in parallel on separate devices.
-appId: needle.inhaystack.app
+appId: com.needleinhaystack.app
 ---
 # A system prompt left over from an earlier flow (iOS asks 'Open in "Haystack"?'
 # for deep links) would cover the app, so close it first.

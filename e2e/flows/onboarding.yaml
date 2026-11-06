@@ -1,4 +1,4 @@
-appId: needle.inhaystack.app
+appId: com.needleinhaystack.app
 name: Onboarding leads to the feed
 ---
 - runFlow: ../subflows/onboard.yaml

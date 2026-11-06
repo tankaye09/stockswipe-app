@@ -4,7 +4,7 @@
 # 20 seconds or more to show up, and iOS doesn't always ask (it may remember the
 # answer), so iOS waits for it without failing and taps Open if it came.
 # Android opens the link directly. Usage: runFlow with env LINK.
-appId: needle.inhaystack.app
+appId: com.needleinhaystack.app
 ---
 - openLink: ${LINK}
 - runFlow:

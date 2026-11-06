@@ -1,4 +1,4 @@
-appId: needle.inhaystack.app
+appId: com.needleinhaystack.app
 name: Trade mode asks for a broker first
 ---
 - runFlow: ../subflows/onboard.yaml

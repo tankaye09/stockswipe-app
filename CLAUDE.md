@@ -17,7 +17,7 @@ database, filled daily by `jobs/sync` from Yahoo, Nasdaq and SGX for private tes
 There is no real trading in the app. See README.md for the feature map and folder layout.
 
 The app is called Haystack (store listing name "Haystack: Find the needle"). The bundle ID and Android package are
-`needle.inhaystack.app` and the link scheme is `haystack` (Kaye, 6 Nov 2026). Never change them after the first store
+`com.needleinhaystack.app` and the link scheme is `haystack` (Kaye, 6 Nov 2026). Never change them after the first store
 release. The Expo slug stays `stockswipe-app` so the EAS project, update URL and dev-client QR codes keep working.
 
 ## Code standards

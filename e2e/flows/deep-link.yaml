@@ -1,4 +1,4 @@
-appId: needle.inhaystack.app
+appId: com.needleinhaystack.app
 name: Deep links open a stock, and a malformed one shows not found instead of crashing
 ---
 - runFlow: ../subflows/onboard.yaml
