@@ -34,7 +34,6 @@ async function setup(items: Card[] = [{ id: 'a' }, { id: 'b' }]) {
       render={(c) => <Text>card {c.id}</Text>}
       onSwipe={onSwipe}
       onTap={onTap}
-      rightColor="green"
       canSwipe={(c) => !c.locked}
     />,
   );
