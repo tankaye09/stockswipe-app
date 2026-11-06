@@ -5,8 +5,8 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { brokerById, openInBroker } from '../../broker/brokers';
 import { AdCard, EmptyCard, LimitCard } from '../../components/FeedCards';
-import { Icon } from '../../components/Icon';
 import { StockCard } from '../../components/StockCard';
+import { Hay, Needle } from '../../components/SwipeStamp';
 import { SwipeDeck, type SwipeDeckHandle, type SwipeDir } from '../../components/SwipeDeck';
 import { Disclaimer, Segmented } from '../../components/ui';
 import { UndoToast, useUndo } from '../../components/UndoToast';
@@ -156,7 +156,7 @@ function Feed({ universe }: { universe: StockSummary[] }) {
           onPress={() => deckRef.current?.swipe('left')}
           style={[styles.round, { borderColor: colors.skip }]}
         >
-          <Icon name="close" size={28} color={colors.skip} />
+          <Hay size={48} />
         </Pressable>
         <Pressable
           testID="right-button"
@@ -165,12 +165,7 @@ function Feed({ universe }: { universe: StockSummary[] }) {
           onPress={() => deckRef.current?.swipe('right')}
           style={[styles.round, { borderColor: tradeMode ? colors.trade : colors.save }]}
         >
-          <Icon
-            name={tradeMode ? 'external' : 'star'}
-            size={28}
-            color={tradeMode ? colors.trade : colors.save}
-            filled={!tradeMode}
-          />
+          <Needle size={48} />
         </Pressable>
       </View>
       <Disclaimer />
