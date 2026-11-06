@@ -53,7 +53,7 @@ export function LimitCard({ dailySwipes, onUpgrade }: { dailySwipes: number; onU
       <CardIcon name="hourglass" />
       <Text style={styles.title}>That’s your {dailySwipes} swipes for today</Text>
       <Text style={styles.body}>
-        Come back tomorrow for a fresh batch, or go Premium for unlimited swipes. Your watchlist and paper portfolio are
+        Come back tomorrow for a fresh batch, or go Premium for unlimited swipes. Your Needles and paper portfolio are
         still open.
       </Text>
       <Pressable style={styles.button} onPress={onUpgrade} testID="limit-upgrade">

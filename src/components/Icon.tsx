@@ -1,3 +1,4 @@
+import ArrowLeftRight from 'lucide-react-native/icons/arrow-left-right';
 import ArrowUpRight from 'lucide-react-native/icons/arrow-up-right';
 import Ban from 'lucide-react-native/icons/ban';
 import BrainCircuit from 'lucide-react-native/icons/brain-circuit';
@@ -56,6 +57,7 @@ const ICONS = {
   shopping: ShoppingBag,
   sparkles: Sparkles,
   star: Star,
+  trades: ArrowLeftRight,
   tv: Tv,
 };
 

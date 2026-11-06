@@ -1,5 +1,5 @@
 appId: com.stockswipe.app
-name: Swiping right saves to the watchlist
+name: Swiping right saves to Needles
 ---
 - runFlow: ../subflows/onboard.yaml
 # A long, quick drag across the card, well past the swipe threshold.
@@ -7,7 +7,7 @@ name: Swiping right saves to the watchlist
     start: '15%, 45%'
     end: '95%, 45%'
     duration: 300
-- assertVisible: 'Saved .* to your watchlist'
+- assertVisible: 'Saved .* to Needles'
 - tapOn:
     id: 'tab-watchlist'
 - assertVisible:

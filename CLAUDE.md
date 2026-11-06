@@ -8,12 +8,18 @@ changes.
 
 ## What this is
 
-Swipe (working name): a swipe feed of stocks for iOS and Android, built with Expo (React Native + TypeScript) and Expo
-Router. Cards explain a company in plain English with a chart and key stats. Right-swipe saves to the watchlist (or, in
-Trade mode, hands off to the user's broker), left-swipe skips, and there is paper trading. Markets are US and SGX, US
+Haystack ("find the needle"): a swipe feed of stocks for iOS and Android, built with Expo (React Native + TypeScript) and Expo
+Router. Cards explain a company in plain English with a chart and key stats. The feed tab is the Stack, and found stocks
+are Needles: right-swipe saves to Needles > Watchlist, or in Trade mode hands off to the user's broker and lists the
+stock under Needles > Trades, as paper trades do too. Left-swipe skips. Markets are US and SGX, US
 first. The app runs on sample data in `src/data/mock` unless a build turns on live data, which comes from our Supabase
 database, filled daily by `jobs/sync` from Yahoo, Nasdaq and SGX for private testing only (README "Real stock data").
 There is no real trading in the app. See README.md for the feature map and folder layout.
+
+The app is called Haystack (store listing name "Haystack: Find the needle"). The bundle ID and package
+`com.stockswipe.app`, Expo slug `stockswipe-app` and link scheme `stockswipe` keep the old name on purpose, so the
+existing dev build, EAS project and e2e flows keep working. Change them only with Kaye's go-ahead, before the first
+store release.
 
 ## Code standards
 
@@ -56,7 +62,7 @@ Native builds and e2e flows run in CI; this container can't run simulators.
   changes), and on demand. If it goes red on `main`, fix it before merging more app changes. Expo SDK 58 needs **Xcode 26**
   (`expo-modules-jsi` uses Swift tools 6.2), so the job must use the `macos-26` runner (#5). Keep `set -o pipefail` on
   piped build steps so a failed `xcodebuild` fails its own step.
-- Phone previews: `preview.yml` publishes each PR as an EAS Update and comments a QR code to open it in the Swipe
+- Phone previews: `preview.yml` publishes each PR as an EAS Update and comments a QR code to open it in the Haystack
   development build (`eas.json` profile `development`, built on demand by `dev-build.yml`). It skips until the
   `EXPO_TOKEN` secret and the Expo project ID in `app.json` exist. Native changes need a new development build.
   `update-main.yml` does the same for `main` after each merge (EAS branch `main`). Both use live stock data when the

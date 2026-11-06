@@ -5,7 +5,7 @@ import type { BrokerId } from '../broker/brokers';
 import type { Limits } from '../monetization/config';
 import { NO_FILTERS, type FeedFilters } from '../feed/feedEngine';
 import { parseSavedState } from './persist';
-import { applyPaperTrade, isoDate, SEEN_MEMORY, STARTING_CASH_USD, type TradeSide } from './rules';
+import { addToTop, applyPaperTrade, isoDate, SEEN_MEMORY, STARTING_CASH_USD, type TradeSide } from './rules';
 import type { AppState, SwipeMode } from './types';
 
 export const STORAGE_KEY = 'swipe-state-v1';
@@ -20,6 +20,7 @@ export const initialState = (): AppState => ({
   swipeMode: 'save',
   broker: null,
   watchlist: [],
+  traded: [],
   seen: [],
   swipesToday: { date: isoDate(), count: 0 },
   premium: false,
@@ -42,6 +43,8 @@ export type Action =
   | { type: 'setUsage'; firstOpen?: string; swipesToday?: number }
   | { type: 'save'; id: StockId }
   | { type: 'unsave'; id: StockId }
+  | { type: 'markTraded'; id: StockId }
+  | { type: 'unmarkTraded'; id: StockId }
   | { type: 'markSeen'; id: StockId }
   | { type: 'countSwipe'; delta: 1 | -1 }
   | { type: 'paperTrade'; id: StockId; side: TradeSide; qty: number; price: number; currency: Currency }
@@ -78,9 +81,15 @@ export function reducer(state: AppState, action: Action): AppState {
           action.swipesToday == null ? state.swipesToday : { date: isoDate(), count: Math.max(0, action.swipesToday) },
       };
     case 'save':
-      return state.watchlist.includes(action.id) ? state : { ...state, watchlist: [action.id, ...state.watchlist] };
+      return state.watchlist.includes(action.id)
+        ? state
+        : { ...state, watchlist: addToTop(state.watchlist, action.id) };
     case 'unsave':
       return { ...state, watchlist: state.watchlist.filter((w) => w !== action.id) };
+    case 'markTraded':
+      return state.traded.includes(action.id) ? state : { ...state, traded: addToTop(state.traded, action.id) };
+    case 'unmarkTraded':
+      return { ...state, traded: state.traded.filter((t) => t !== action.id) };
     case 'markSeen':
       return { ...state, seen: [action.id, ...state.seen.filter((s) => s !== action.id)].slice(0, SEEN_MEMORY) };
     case 'countSwipe': {
@@ -98,8 +107,10 @@ export function reducer(state: AppState, action: Action): AppState {
         price: action.price,
         at: new Date().toISOString(),
       };
+      // A traded stock is kept under Trades in Needles, so it is easy to find again.
       return {
         ...state,
+        traded: addToTop(state.traded, action.id),
         paper: { cashUsd: res.cashUsd, positions: res.positions, trades: [trade, ...state.paper.trades].slice(0, 200) },
       };
     }

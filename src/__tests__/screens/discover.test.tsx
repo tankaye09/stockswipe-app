@@ -52,7 +52,7 @@ it('saves on a right swipe, with undo', async () => {
   await openFeed();
   const symbol = topSymbol();
   await press('right-button');
-  expect(await screen.findByText(`Saved ${symbol} to your watchlist`)).toBeOnTheScreen();
+  expect(await screen.findByText(`Saved ${symbol} to Needles`)).toBeOnTheScreen();
   await waitFor(async () => expect((await persisted()).watchlist).toEqual([`US:${symbol}`]));
 
   await fireEvent.press(screen.getByTestId('undo-button'));
@@ -93,8 +93,11 @@ it('Trade mode opens the broker after the undo window', async () => {
   await press('right-button');
   expect(await screen.findByText(`Opening ${symbol} in moomoo…`)).toBeOnTheScreen();
   expect(open).not.toHaveBeenCalled();
+  expect((await persisted()).traded).toEqual([]);
   await act(async () => jest.advanceTimersByTime(4000));
   expect(open).toHaveBeenCalledWith(`https://www.moomoo.com/stock/${symbol}-US`);
+  await waitFor(async () => expect((await persisted()).traded).toEqual([`US:${symbol}`]));
+  expect((await persisted()).watchlist).toEqual([]);
 });
 
 it('Trade mode undo cancels the hand-off', async () => {
@@ -104,6 +107,7 @@ it('Trade mode undo cancels the hand-off', async () => {
   await fireEvent.press(await screen.findByTestId('undo-button'));
   await act(async () => jest.advanceTimersByTime(4000));
   expect(open).not.toHaveBeenCalled();
+  expect((await persisted()).traded).toEqual([]);
 });
 
 it('switches swipe mode', async () => {

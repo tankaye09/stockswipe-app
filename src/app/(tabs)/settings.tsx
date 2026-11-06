@@ -69,7 +69,7 @@ export default function SettingsScreen() {
         ))}
       </Row>
       <Text style={styles.note}>
-        Trade mode opens this broker’s app on the stock. You place any real trade there, not in Swipe.
+        Trade mode opens this broker’s app on the stock. You place any real trade there, not in Haystack.
       </Text>
       {!state.broker && (
         <>
@@ -87,7 +87,7 @@ export default function SettingsScreen() {
             ))}
           </Row>
           <Text style={styles.note}>
-            Swipe may earn a referral fee if you open an account through these links. It does not change which stocks
+            Haystack may earn a referral fee if you open an account through these links. It does not change which stocks
             you see.
           </Text>
         </>
@@ -153,8 +153,8 @@ export default function SettingsScreen() {
 
       <SectionTitle>About</SectionTitle>
       <Text style={styles.note}>
-        Swipe shows information for learning and discovery. It is not financial advice and does not recommend buying or
-        selling any stock. {DATA_NOTE}
+        Haystack shows information for learning and discovery. It is not financial advice and does not recommend buying
+        or selling any stock. {DATA_NOTE}
       </Text>
       <Button
         testID="reset-all"

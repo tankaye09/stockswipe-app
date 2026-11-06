@@ -8,7 +8,7 @@ import { AdCard, EmptyCard, LimitCard } from '../../components/FeedCards';
 import { Icon } from '../../components/Icon';
 import { StockCard } from '../../components/StockCard';
 import { SwipeDeck, type SwipeDeckHandle, type SwipeDir } from '../../components/SwipeDeck';
-import { Disclaimer } from '../../components/ui';
+import { Disclaimer, Segmented } from '../../components/ui';
 import { UndoToast, useUndo } from '../../components/UndoToast';
 import { NO_FILTERS } from '../../feed/feedEngine';
 import type { StockSummary } from '../../data/types';
@@ -16,6 +16,11 @@ import { useFeed, useUniverse, type DeckItem } from '../../feed/useFeed';
 import { effectiveLimits } from '../../state/rules';
 import { useAppState } from '../../state/store';
 import { colors, radius, space } from '../../theme';
+
+const SWIPE_MODES = [
+  { value: 'save', label: 'Save', icon: 'star' },
+  { value: 'trade', label: 'Trade', icon: 'external' },
+] as const;
 
 export default function DiscoverScreen() {
   const { state } = useAppState();
@@ -67,7 +72,7 @@ function Feed({ universe }: { universe: StockSummary[] }) {
       const alreadySaved = state.watchlist.includes(item.id);
       dispatch({ type: 'save', id: item.id });
       start({
-        message: `Saved ${item.stock.symbol} to your watchlist`,
+        message: `Saved ${item.stock.symbol} to Needles`,
         onUndo: () => {
           if (!alreadySaved) dispatch({ type: 'unsave', id: item.id });
           undoSwipe();
@@ -86,6 +91,8 @@ function Feed({ universe }: { universe: StockSummary[] }) {
       message: `Opening ${item.stock.symbol} in ${brokerById(broker).name}…`,
       onUndo: undoSwipe,
       onExpire: () => {
+        // Undo is over, so the hand-off happens: keep the stock under Trades in Needles.
+        dispatch({ type: 'markTraded', id: item.id });
         openInBroker(broker, item.stock.symbol, item.stock.market);
       },
     });
@@ -110,27 +117,12 @@ function Feed({ universe }: { universe: StockSummary[] }) {
   return (
     <>
       <View style={styles.header}>
-        <View style={styles.toggle} accessibilityRole="radiogroup">
-          {(['save', 'trade'] as const).map((m) => (
-            <Pressable
-              key={m}
-              testID={`mode-${m}`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: state.swipeMode === m }}
-              onPress={() => dispatch({ type: 'setSwipeMode', mode: m })}
-              style={[styles.toggleBtn, state.swipeMode === m && styles.toggleOn]}
-            >
-              <Icon
-                name={m === 'save' ? 'star' : 'external'}
-                size={16}
-                color={state.swipeMode === m ? colors.text : colors.textFaint}
-              />
-              <Text style={[styles.toggleText, state.swipeMode === m && styles.toggleTextOn]}>
-                {m === 'save' ? 'Save' : 'Trade'}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <Segmented
+          options={SWIPE_MODES}
+          value={state.swipeMode}
+          onChange={(mode) => dispatch({ type: 'setSwipeMode', mode })}
+          testIDPrefix="mode"
+        />
         <View style={styles.headerRight}>
           {Number.isFinite(remaining) && (
             <Text style={styles.remaining} testID="swipes-left">
@@ -151,7 +143,6 @@ function Feed({ universe }: { universe: StockSummary[] }) {
           render={renderCard}
           onSwipe={onSwipe}
           onTap={(c) => c.kind === 'stock' && router.push(`/stock/${encodeURIComponent(c.item.id)}`)}
-          rightLabel={tradeMode ? 'TRADE' : 'SAVE'}
           rightColor={tradeMode ? colors.trade : colors.save}
           canSwipe={(c) => c.kind === 'stock' || c.kind === 'ad'}
         />
@@ -197,18 +188,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: space(4),
     paddingVertical: space(2),
   },
-  toggle: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 999, padding: 3 },
-  toggleBtn: {
-    paddingHorizontal: space(3.5),
-    paddingVertical: space(1.5),
-    borderRadius: 999,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space(1.5),
-  },
-  toggleOn: { backgroundColor: colors.cardAlt },
-  toggleText: { color: colors.textFaint, fontWeight: '700' },
-  toggleTextOn: { color: colors.text },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: space(3) },
   remaining: { color: colors.textDim, fontSize: 13 },
   filterBtn: {

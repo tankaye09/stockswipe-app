@@ -30,8 +30,8 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: colors.bg },
       }}
     >
-      <Tabs.Screen name="index" options={{ ...tab('Discover', 'discover'), headerShown: false }} />
-      <Tabs.Screen name="watchlist" options={tab('Watchlist', 'watchlist')} />
+      <Tabs.Screen name="index" options={{ ...tab('Stack', 'discover'), headerShown: false }} />
+      <Tabs.Screen name="watchlist" options={tab('Needles', 'watchlist')} />
       <Tabs.Screen name="portfolio" options={tab('Paper', 'paper')} />
       <Tabs.Screen name="settings" options={tab('Settings', 'settings')} />
     </Tabs>

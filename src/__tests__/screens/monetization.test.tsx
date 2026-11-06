@@ -25,6 +25,7 @@ describe('Paywall', () => {
   it('lists plans with the annual plan picked, and subscribes', async () => {
     await renderWithState(<PaywallScreen />);
     expect(await screen.findByTestId('plan-annual')).toBeSelected();
+    expect(screen.getByText('Haystack Premium')).toBeOnTheScreen();
     expect(screen.getByText('S$5.98 / month')).toBeOnTheScreen();
     expect(screen.getByText(`Unlimited swipes (free is ${DEFAULT_LIMITS.dailySwipes} a day)`)).toBeOnTheScreen();
     expect(screen.getByTestId('paywall-test-mode')).toBeOnTheScreen();
@@ -138,7 +139,7 @@ describe('Settings: Premium, referrals and admin', () => {
   it('offers broker sign-up links with a disclosure until a broker is picked', async () => {
     const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     await renderWithState(<SettingsScreen />);
-    expect(screen.getByText(/may earn a referral fee/)).toBeOnTheScreen();
+    expect(screen.getByText(/Haystack may earn a referral fee/)).toBeOnTheScreen();
     await user().press(screen.getByTestId('signup-tiger'));
     expect(open).toHaveBeenCalledWith('https://www.tigerbrokers.com.sg/');
     await user().press(screen.getByTestId('broker-tiger'));

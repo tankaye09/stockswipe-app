@@ -15,6 +15,7 @@ name: Subscribing to Premium from Settings (test purchases)
     id: 'see-premium'
 - assertVisible:
     id: 'paywall'
+- assertVisible: 'Haystack Premium'
 - assertVisible:
     id: 'paywall-test-mode'
 - tapOn:

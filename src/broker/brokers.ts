@@ -2,7 +2,7 @@
 // open the broker's page for the stock so the user decides there.
 //
 // Users without a broker can open an account through a referral link, which
-// is how Swipe earns from brokers. Referral links are set in config
+// is how Haystack earns from brokers. Referral links are set in config
 // (EXPO_PUBLIC_REFERRAL_*); until then the broker's normal sign-up page opens.
 //
 // TODO before launch: confirm each broker's official deep link / universal link

@@ -11,10 +11,16 @@ beforeEach(async () => {
 jest.mock('expo-router', () => {
   const React = require('react');
   const { Text, View } = require('react-native');
-  const Screen = ({ name, options }: { name: string; options?: { tabBarIcon?: (p: object) => unknown } }) =>
+  const Screen = ({
+    name,
+    options,
+  }: {
+    name: string;
+    options?: { title?: string; tabBarIcon?: (p: object) => unknown };
+  }) =>
     React.createElement(
       View,
-      { testID: `screen-${name}` },
+      { testID: `screen-${name}`, accessibilityLabel: options?.title },
       options?.tabBarIcon?.({ color: '#fff', focused: false, size: 20 }),
     );
   const Navigator = ({ children }: { children?: unknown }) => React.createElement(View, null, children);

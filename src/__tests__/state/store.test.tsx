@@ -38,6 +38,14 @@ describe('reducer', () => {
     expect(reducer(s, { type: 'unsave', id: 'US:AAPL' }).watchlist).toEqual(['US:NVDA']);
   });
 
+  it('keeps traded stocks for Needles > Trades without duplicates', () => {
+    let s = reducer(s0(), { type: 'markTraded', id: 'US:AAPL' });
+    expect(reducer(s, { type: 'markTraded', id: 'US:AAPL' })).toBe(s);
+    s = reducer(s, { type: 'markTraded', id: 'US:NVDA' });
+    expect(s.traded).toEqual(['US:NVDA', 'US:AAPL']);
+    expect(reducer(s, { type: 'unmarkTraded', id: 'US:AAPL' }).traded).toEqual(['US:NVDA']);
+  });
+
   it('remembers recently seen stocks, newest first, capped', () => {
     let s = s0();
     for (let i = 0; i < 70; i++) s = reducer(s, { type: 'markSeen', id: `US:S${i}` });
@@ -61,6 +69,8 @@ describe('reducer', () => {
     const s = reducer(s0(), trade);
     expect(s.paper.cashUsd).toBe(STARTING_CASH_USD - 200);
     expect(s.paper.trades[0]).toMatchObject({ id: 'US:AAPL', side: 'buy', qty: 2, price: 100 });
+    expect(s.traded).toEqual(['US:AAPL']);
+    expect(reducer(s, { ...trade, side: 'sell', qty: 1 }).traded).toEqual(['US:AAPL']);
     const bad = reducer(s, { ...trade, side: 'sell', qty: 99 });
     expect(bad).toBe(s);
     expect(reducer(s, { type: 'resetPaper' }).paper).toEqual(initialState().paper);

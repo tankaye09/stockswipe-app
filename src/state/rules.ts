@@ -1,5 +1,5 @@
 // Business rules kept as pure functions so they're easy to test and tweak.
-import type { Currency } from '../data/types';
+import type { Currency, StockId } from '../data/types';
 import { DEFAULT_LIMITS, type Limits } from '../monetization/config';
 import type { AppState, PaperTrade, Position } from './types';
 
@@ -14,6 +14,9 @@ export const isoDate = (d = new Date()) => d.toISOString().slice(0, 10);
 export function daysSince(iso: string, now = new Date()) {
   return Math.floor((new Date(isoDate(now)).getTime() - new Date(iso).getTime()) / 86400000);
 }
+
+/** Puts a stock at the top of a Needles list (Watchlist or Trades), once. */
+export const addToTop = (list: StockId[], id: StockId) => (list.includes(id) ? list : [id, ...list]);
 
 /** Highest value accepted for any limit, so a typo can't break the app. */
 export const MAX_LIMIT = 10_000;

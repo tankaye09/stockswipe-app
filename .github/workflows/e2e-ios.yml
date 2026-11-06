@@ -101,7 +101,7 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild -version
-          xcodebuild -workspace ios/Swipe.xcworkspace -scheme Swipe -configuration Release \
+          xcodebuild -workspace ios/Haystack.xcworkspace -scheme Haystack -configuration Release \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=YES ARCHS=arm64 | tail -n 50
@@ -118,7 +118,7 @@ jobs:
           # The first boot takes about 7 minutes on CI. Wait for it, so the simulator isn't
           # still busy when Maestro starts its driver.
           xcrun simctl bootstatus "$UDID"
-          xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Swipe.app
+          xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/Haystack.app
 
       # Maestro's iOS driver can take minutes to start the first time, which used
       # to fail whichever flow ran first. Start it here, retrying, so flows don't pay.
