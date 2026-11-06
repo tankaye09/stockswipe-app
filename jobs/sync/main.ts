@@ -1,7 +1,10 @@
 // Entry point for the daily sync: `npx tsx jobs/sync/main.ts US` (or SGX, or all).
 // Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (GitHub secrets in CI).
+// With ANTHROPIC_API_KEY set it also writes stock breakdowns with Claude.
+import Anthropic from '@anthropic-ai/sdk';
 import YahooFinance from 'yahoo-finance2';
 import type { Market } from '../../src/data/types';
+import { claudeWriter, DEFAULT_MODEL } from './breakdown';
 import { syncMarket, type SyncDeps, type SyncResult } from './run';
 import { supabaseStore } from './store';
 import { yahooSource, type YahooLike } from './yahoo';
@@ -45,10 +48,14 @@ export async function main(
     log,
     now: () => new Date(),
     pause: (ms) => new Promise((r) => setTimeout(r, ms)),
+    writer: env.ANTHROPIC_API_KEY
+      ? claudeWriter(new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }), env.SYNC_BREAKDOWN_MODEL || DEFAULT_MODEL)
+      : undefined,
   };
   const opts = {
     profileLimit: count(env.SYNC_PROFILE_LIMIT, 600),
     backfillLimit: count(env.SYNC_BACKFILL_LIMIT, 600),
+    breakdownLimit: count(env.SYNC_BREAKDOWN_LIMIT, 300),
   };
   const results: SyncResult[] = [];
   for (const m of markets) results.push(await syncMarket(m, deps, opts));

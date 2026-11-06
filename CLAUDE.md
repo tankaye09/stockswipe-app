@@ -14,6 +14,7 @@ are Needles: right-swipe saves to Needles > Watchlist, or in Trade mode hands of
 stock under Needles > Trades, as paper trades do too. Left-swipe skips. Markets are US and SGX, US
 first. The app runs on sample data in `src/data/mock` unless a build turns on live data, which comes from our Supabase
 database, filled daily by `jobs/sync` from Yahoo, Nasdaq and SGX for private testing only (README "Real stock data").
+Real stocks' breakdowns are written once by Claude in that job (`ANTHROPIC_API_KEY` secret); the app never calls Claude.
 There is no real trading in the app. See README.md for the feature map and folder layout.
 
 The app is called Haystack (store listing name "Haystack: Find the needle"). The bundle ID and Android package are

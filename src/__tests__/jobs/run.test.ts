@@ -76,7 +76,7 @@ function deps(json: unknown, source: MarketSource, store: StockStore): SyncDeps 
   };
 }
 
-const OPTS = { profileLimit: 10, backfillLimit: 10 };
+const OPTS = { profileLimit: 10, backfillLimit: 10, breakdownLimit: 10 };
 
 const saved = (over: Partial<StockRow>): StockRow => ({
   ...newRow(
@@ -124,6 +124,7 @@ describe('syncMarket', () => {
       quoted: 2,
       profiled: 1,
       backfilled: 1,
+      written: 0,
       saved: 2,
       prices: 3,
       removed: 1,
@@ -185,7 +186,7 @@ describe('syncMarket', () => {
     });
     const { store, saved: out } = fakeStore();
     const d = deps(nasdaq(...symbols), source, store);
-    const result = await syncMarket('US', d, { profileLimit: 0, backfillLimit: 0 });
+    const result = await syncMarket('US', d, { profileLimit: 0, backfillLimit: 0, breakdownLimit: 0 });
     expect(source.quotes).toHaveBeenCalledTimes(2);
     expect(result.quoted).toBe(5);
     expect(out.stocks).toHaveLength(result.quoted);
@@ -210,7 +211,7 @@ describe('syncMarket', () => {
     });
     const { store, saved: out } = fakeStore();
     const d = deps({ data: { prices: codes.map((c) => ({ nc: c, n: `${c} Ltd` })) } }, source, store);
-    const result = await syncMarket('SGX', d, { profileLimit: 100, backfillLimit: 1 });
+    const result = await syncMarket('SGX', d, { profileLimit: 100, backfillLimit: 1, breakdownLimit: 0 });
 
     expect(result.profiled).toBe(0);
     expect(source.profile).toHaveBeenCalledTimes(MAX_FAILS_IN_A_ROW);
@@ -290,5 +291,38 @@ describe('row helpers', () => {
     ];
     expect(needsProfile(rows, NOW, 10).map((r) => r.id)).toEqual(['never', 'older', 'old']);
     expect(needsProfile(rows, NOW, 1).map((r) => r.id)).toEqual(['never']);
+  });
+});
+
+describe('syncMarket breakdowns', () => {
+  it('writes breakdowns for described stocks and keeps the written one-liner', async () => {
+    const written = saved({
+      id: 'US:OLDX',
+      symbol: 'OLDX',
+      yahoo_symbol: 'OLDX',
+      description: 'Sells shoes.',
+      one_liner: 'Old One sells shoes.',
+      breakdown_at: '2026-11-01T00:00:00Z',
+      profile_updated_at: '2026-11-04T00:00:00Z',
+      history_backfilled_at: '2026-11-04T00:00:00Z',
+    });
+    const { store, saved: out } = fakeStore([written]);
+    const write = jest.fn(async (row: StockRow) => ({
+      oneLiner: `${row.symbol} makes chips.`,
+      whatTheyDo: 'Designs chips.',
+      howTheyMakeMoney: 'Sells chips.',
+      whyPeopleWatch: 'AI demand.',
+      risksToKnow: 'Chip cycles.',
+    }));
+    const d = { ...deps(nasdaq('AAPL', 'OLDX'), fakeSource(), store), writer: { write } };
+    const result = await syncMarket('US', d, OPTS);
+    expect(result.written).toBe(1);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(out.stocks.find((s) => s.id === 'US:AAPL')).toMatchObject({
+      one_liner: 'AAPL makes chips.',
+      what_they_do: 'Designs chips.',
+      breakdown_at: NOW.toISOString(),
+    });
+    expect(out.stocks.find((s) => s.id === 'US:OLDX')!.one_liner).toBe('Old One sells shoes.');
   });
 });

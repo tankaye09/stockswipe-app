@@ -134,7 +134,9 @@ key (`.env.example`). Live data comes from our own Supabase database, never stra
 
 - `jobs/sync` runs daily from `.github/workflows/sync-stocks.yml` (US at 7am SGT, SGX at 7pm SGT). It downloads the
   Nasdaq and SGX ticker lists, quotes every stock on Yahoo Finance in batches, and fills in company profiles and a year
-  of daily closes a few hundred stocks per run. It's the same sources as the QF screener.
+  of daily closes a few hundred stocks per run. It's the same sources as the QF screener. With an Anthropic key it
+  also has Claude write each stock's plain-English breakdown once (`jobs/sync/breakdown.ts`), with no buy/sell
+  verdicts; answers that read like one are thrown away.
 - The app reads with `SupabaseProvider` (`src/data/live`). Unit tests and e2e flows always use sample data.
 - **For private testing only.** Yahoo, Nasdaq and SGX data aren't licensed for a public app. Before a store release,
   switch the job to a licensed vendor (see the data plan). Never commit stock data to this public repo.
