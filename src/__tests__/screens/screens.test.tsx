@@ -16,6 +16,9 @@ import { STARTING_CASH_USD } from '../../state/rules';
 import { AppStateProvider, STORAGE_KEY } from '../../state/store';
 import { idOf, persisted, renderWithState } from '../../test-utils';
 
+/** Icons are hidden from screen readers (the text beside them says the same), so tests opt in to find them. */
+const ICON = { includeHiddenElements: true };
+
 const user = () => userEvent.setup();
 const params = useLocalSearchParams as jest.Mock;
 
@@ -141,8 +144,8 @@ describe('Settings', () => {
     expect(screen.getByTestId('pick-broker-hint')).toBeOnTheScreen();
     await user().press(screen.getByTestId('broker-moomoo'));
     await user().press(screen.getByTestId('settings-market-SGX'));
-    await user().press(screen.getByText('🎮 Gaming'));
-    await user().press(screen.getByText('🤖 AI'));
+    await user().press(screen.getByText('Gaming'));
+    await user().press(screen.getByText('AI'));
     await waitFor(async () => expect((await persisted()).interests).toEqual(['gaming']));
     const s = await persisted();
     expect(s).toMatchObject({ broker: 'moomoo', markets: ['US', 'SGX'], interests: ['gaming'] });
@@ -248,10 +251,12 @@ describe('Stock detail', () => {
   it('saves, unsaves and asks for a broker', async () => {
     params.mockReturnValue({ id: idOf('RBLX') });
     await renderWithState(<StockScreen />);
-    await user().press(await screen.findByText('☆ Save'));
-    expect(await screen.findByText('★ Saved')).toBeOnTheScreen();
-    await user().press(screen.getByText('★ Saved'));
-    expect(await screen.findByText('☆ Save')).toBeOnTheScreen();
+    await user().press(await screen.findByText('Save'));
+    expect(await screen.findByText('Saved')).toBeOnTheScreen();
+    expect(screen.getByTestId('icon-star-filled', ICON)).toBeOnTheScreen();
+    await user().press(screen.getByText('Saved'));
+    expect(await screen.findByText('Save')).toBeOnTheScreen();
+    expect(screen.getByTestId('icon-star', ICON)).toBeOnTheScreen();
     await user().press(screen.getByText('Choose a broker'));
     expect(router.push).toHaveBeenCalledWith('/settings');
   });

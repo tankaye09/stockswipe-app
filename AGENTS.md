@@ -50,3 +50,4 @@ Docs: https://docs.expo.dev/eas/index.md
 - Before finishing: `npm run typecheck`, `npx eslint . --max-warnings 0`, `npm run format:check`, `npm run test:coverage`.
 - Add a Maestro flow in `e2e/flows` for any new user journey, and use `testID`s for anything a flow taps. Start every flow with `runFlow: ../subflows/onboard.yaml` so it begins from a fresh install and never relies on another flow.
 - No buy/sell language anywhere in the UI. Cards explain; they do not recommend.
+- Icons: use `Icon` from `src/components/Icon.tsx` (Lucide, drawn to match the tab bar's `TabIcon`), never emoji or text symbols such as ★ or ↗. To add an icon, import it there by its own path.

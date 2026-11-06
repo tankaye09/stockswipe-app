@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { brokerById, openInBroker } from '../../broker/brokers';
 import { AdCard, EmptyCard, LimitCard } from '../../components/FeedCards';
+import { Icon } from '../../components/Icon';
 import { StockCard } from '../../components/StockCard';
 import { SwipeDeck, type SwipeDeckHandle, type SwipeDir } from '../../components/SwipeDeck';
 import { Disclaimer } from '../../components/ui';
@@ -119,8 +120,13 @@ function Feed({ universe }: { universe: StockSummary[] }) {
               onPress={() => dispatch({ type: 'setSwipeMode', mode: m })}
               style={[styles.toggleBtn, state.swipeMode === m && styles.toggleOn]}
             >
+              <Icon
+                name={m === 'save' ? 'star' : 'external'}
+                size={16}
+                color={state.swipeMode === m ? colors.text : colors.textFaint}
+              />
               <Text style={[styles.toggleText, state.swipeMode === m && styles.toggleTextOn]}>
-                {m === 'save' ? '⭐ Save' : '↗ Trade'}
+                {m === 'save' ? 'Save' : 'Trade'}
               </Text>
             </Pressable>
           ))}
@@ -159,7 +165,7 @@ function Feed({ universe }: { universe: StockSummary[] }) {
           onPress={() => deckRef.current?.swipe('left')}
           style={[styles.round, { borderColor: colors.skip }]}
         >
-          <Text style={[styles.roundText, { color: colors.skip }]}>✕</Text>
+          <Icon name="close" size={28} color={colors.skip} />
         </Pressable>
         <Pressable
           testID="right-button"
@@ -168,9 +174,12 @@ function Feed({ universe }: { universe: StockSummary[] }) {
           onPress={() => deckRef.current?.swipe('right')}
           style={[styles.round, { borderColor: tradeMode ? colors.trade : colors.save }]}
         >
-          <Text style={[styles.roundText, { color: tradeMode ? colors.trade : colors.save }]}>
-            {tradeMode ? '↗' : '★'}
-          </Text>
+          <Icon
+            name={tradeMode ? 'external' : 'star'}
+            size={28}
+            color={tradeMode ? colors.trade : colors.save}
+            filled={!tradeMode}
+          />
         </Pressable>
       </View>
       <Disclaimer />
@@ -189,7 +198,14 @@ const styles = StyleSheet.create({
     paddingVertical: space(2),
   },
   toggle: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 999, padding: 3 },
-  toggleBtn: { paddingHorizontal: space(3.5), paddingVertical: space(1.5), borderRadius: 999 },
+  toggleBtn: {
+    paddingHorizontal: space(3.5),
+    paddingVertical: space(1.5),
+    borderRadius: 999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(1.5),
+  },
   toggleOn: { backgroundColor: colors.cardAlt },
   toggleText: { color: colors.textFaint, fontWeight: '700' },
   toggleTextOn: { color: colors.text },
@@ -213,5 +229,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.card,
   },
-  roundText: { fontSize: 26, fontWeight: '800' },
 });

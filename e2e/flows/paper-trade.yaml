@@ -1,5 +1,5 @@
 appId: com.stockswipe.app
-name: Paper buy shows up in the paper portfolio
+name: Save and paper buy from a stock page show up in the watchlist and paper portfolio
 ---
 - runFlow: ../subflows/onboard.yaml
 - tapOn:
@@ -7,6 +7,10 @@ name: Paper buy shows up in the paper portfolio
 - assertVisible:
     id: 'stock-screen'
 - assertVisible: 'In plain English'
+# The Save button sits above "In plain English", so it is already on screen.
+- tapOn:
+    id: 'toggle-save'
+- assertVisible: 'Saved'
 - scrollUntilVisible:
     element:
       id: 'paper-buy'
@@ -40,3 +44,7 @@ name: Paper buy shows up in the paper portfolio
 # On iOS a pressable row reads as one element holding all of its text, so
 # match "1 share" anywhere in it rather than as the whole text.
 - assertVisible: '.*1 share.*'
+- tapOn:
+    id: 'tab-watchlist'
+- assertVisible:
+    id: 'watchlist'

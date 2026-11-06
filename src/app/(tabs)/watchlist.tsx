@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Icon } from '../../components/Icon';
 import { StockRow } from '../../components/StockRow';
 import { useStocks } from '../../components/useStocks';
 import { useAppState } from '../../state/store';
@@ -39,7 +40,7 @@ export default function WatchlistScreen() {
               hitSlop={12}
               onPress={() => dispatch({ type: 'unsave', id })}
             >
-              <Text style={{ color: colors.textFaint, fontSize: 18 }}>✕</Text>
+              <Icon name="close" size={20} color={colors.textFaint} />
             </Pressable>
           }
         />

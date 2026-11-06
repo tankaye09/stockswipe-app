@@ -1,3 +1,4 @@
+import type { IconName } from '../components/Icon';
 import type { CapBucket, Sector, Theme } from '../data/types';
 
 export const THEME_LABELS: Record<Theme, string> = {
@@ -16,20 +17,21 @@ export const THEME_LABELS: Record<Theme, string> = {
   dividends: 'Dividends',
 };
 
-export const THEME_EMOJI: Record<Theme, string> = {
-  ai: '🤖',
-  gaming: '🎮',
-  'coffee-food': '☕',
-  'clean-energy': '🌱',
-  ev: '🚗',
-  banking: '🏦',
-  travel: '✈️',
-  health: '💊',
-  shopping: '🛍️',
-  streaming: '📺',
-  semiconductors: '💾',
-  property: '🏢',
-  dividends: '💰',
+/** The icon shown beside each interest, from the app's one icon set. */
+export const THEME_ICON: Record<Theme, IconName> = {
+  ai: 'ai',
+  gaming: 'gamepad',
+  'coffee-food': 'coffee',
+  'clean-energy': 'leaf',
+  ev: 'car',
+  banking: 'landmark',
+  travel: 'plane',
+  health: 'pill',
+  shopping: 'shopping',
+  streaming: 'tv',
+  semiconductors: 'chip',
+  property: 'building',
+  dividends: 'coins',
 };
 
 export const ALL_THEMES = Object.keys(THEME_LABELS) as Theme[];

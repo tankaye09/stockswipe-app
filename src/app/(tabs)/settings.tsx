@@ -2,10 +2,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
 import { BROKERS, openBrokerSignUp } from '../../broker/brokers';
+import { Icon } from '../../components/Icon';
 import { Button, Chip, Row, SectionTitle } from '../../components/ui';
 import { DATA_NOTE } from '../../data';
 import type { Market, Theme } from '../../data/types';
-import { ALL_THEMES, THEME_EMOJI, THEME_LABELS } from '../../feed/themes';
+import { ALL_THEMES, THEME_ICON, THEME_LABELS } from '../../feed/themes';
 import { ADMIN_TOOLS } from '../../monetization/config';
 import { purchases } from '../../monetization/purchases';
 import { effectiveLimits, freeDaysLeft } from '../../state/rules';
@@ -78,7 +79,8 @@ export default function SettingsScreen() {
               <Chip
                 key={b.id}
                 testID={`signup-${b.id}`}
-                label={`${b.name} ↗`}
+                label={b.name}
+                icon="external"
                 selected={false}
                 onPress={() => openBrokerSignUp(b.id)}
               />
@@ -97,7 +99,7 @@ export default function SettingsScreen() {
           <Chip
             key={m}
             testID={`settings-market-${m}`}
-            label={m === 'US' ? '🇺🇸 US' : '🇸🇬 SGX'}
+            label={m}
             selected={state.markets.includes(m)}
             onPress={() => dispatch({ type: 'setMarkets', markets: toggle(state.markets, m) })}
           />
@@ -109,7 +111,8 @@ export default function SettingsScreen() {
         {ALL_THEMES.map((t: Theme) => (
           <Chip
             key={t}
-            label={`${THEME_EMOJI[t]} ${THEME_LABELS[t]}`}
+            label={THEME_LABELS[t]}
+            icon={THEME_ICON[t]}
             selected={state.interests.includes(t)}
             onPress={() => dispatch({ type: 'setInterests', interests: toggle(state.interests, t) })}
           />
@@ -118,9 +121,12 @@ export default function SettingsScreen() {
 
       <SectionTitle>Premium</SectionTitle>
       {state.premium ? (
-        <Text style={styles.label} testID="premium-active">
-          ✨ Premium is on: unlimited swipes, no ads.
-        </Text>
+        <View style={styles.premiumOn}>
+          <Icon name="sparkles" size={16} color={colors.accent} />
+          <Text style={styles.label} testID="premium-active">
+            Premium is on: unlimited swipes, no ads.
+          </Text>
+        </View>
       ) : (
         <>
           <Text style={styles.label} testID="plan-status">
@@ -175,5 +181,6 @@ const styles = StyleSheet.create({
   hint: { color: colors.trade, marginBottom: space(2) },
   note: { color: colors.textFaint, fontSize: 13, lineHeight: 18, marginTop: space(2) },
   label: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  premiumOn: { flexDirection: 'row', alignItems: 'center', gap: space(2) },
   link: { color: colors.accent, fontWeight: '600' },
 });

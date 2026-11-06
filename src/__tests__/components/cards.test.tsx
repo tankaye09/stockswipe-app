@@ -1,17 +1,22 @@
 import { fireEvent, render, screen, userEvent } from '@testing-library/react-native';
 import React from 'react';
 import { AdCard, EmptyCard, LimitCard } from '../../components/FeedCards';
+import { Icon, ICON_STROKE } from '../../components/Icon';
 import { PriceChart } from '../../components/PriceChart';
 import { StockCard } from '../../components/StockCard';
 import { StockRow } from '../../components/StockRow';
 import { Button, Chip, Disclaimer } from '../../components/ui';
 import { idOf, sample } from '../../test-utils';
 
+/** Icons are hidden from screen readers (the text beside them says the same), so tests opt in to find them. */
+const ICON = { includeHiddenElements: true };
+
 describe('StockCard', () => {
   it('shows the reason, price, stats and plain-English breakdown', async () => {
     const stock = sample('NVDA');
     await render(<StockCard item={{ id: idOf('NVDA'), stock, bucket: 'news', reason: 'In the news: chips' }} />);
-    expect(screen.getByText('📰 In the news: chips')).toBeOnTheScreen();
+    expect(screen.getByText('In the news: chips')).toBeOnTheScreen();
+    expect(screen.getByTestId('reason-news', ICON)).toBeOnTheScreen();
     expect(screen.getByText('NVDA')).toBeOnTheScreen();
     expect(screen.getByText('$187.60')).toBeOnTheScreen();
     expect(screen.getByText('+3.40% today')).toBeOnTheScreen();
@@ -24,7 +29,8 @@ describe('StockCard', () => {
     const stock = sample('AAPL');
     await render(<StockCard item={{ id: idOf('AAPL'), stock, bucket: 'wildcard', reason: 'x' }} />);
     await fireEvent(screen.getByTestId('card-chart'), 'layout', { nativeEvent: { layout: { width: 300 } } });
-    expect(screen.getByText('🎲 x')).toBeOnTheScreen();
+    expect(screen.getByText('x')).toBeOnTheScreen();
+    expect(screen.getByTestId('reason-wildcard', ICON)).toBeOnTheScreen();
   });
 
   it('shows n/a and None for missing stats', async () => {
@@ -32,7 +38,8 @@ describe('StockCard', () => {
     await render(<StockCard item={{ id: idOf('RBLX'), stock, bucket: 'liked', reason: 'Because' }} />);
     expect(screen.getByText('n/a')).toBeOnTheScreen();
     expect(screen.getByText('None')).toBeOnTheScreen();
-    expect(screen.getByText('❤️ Because')).toBeOnTheScreen();
+    expect(screen.getByText('Because')).toBeOnTheScreen();
+    expect(screen.getByTestId('reason-liked', ICON)).toBeOnTheScreen();
   });
 });
 
@@ -122,5 +129,19 @@ describe('ui', () => {
     expect(screen.getByText('-4.10%')).toBeOnTheScreen();
     await userEvent.setup().press(screen.getByTestId('row'));
     expect(onPress).toHaveBeenCalled();
+  });
+});
+
+describe('Icon', () => {
+  it('draws an outline by default and fills when asked, at the shared stroke width', async () => {
+    await render(
+      <>
+        <Icon name="star" color="#fff" />
+        <Icon name="heart" color="#f00" size={14} filled />
+      </>,
+    );
+    const star = screen.getByTestId('icon-star', ICON);
+    expect(star.props).toMatchObject({ width: 20, height: 20, strokeWidth: ICON_STROKE, fill: 'none' });
+    expect(screen.getByTestId('icon-heart-filled', ICON).props).toMatchObject({ width: 14, fill: '#f00' });
   });
 });

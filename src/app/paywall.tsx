@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Icon, type IconName } from '../components/Icon';
 import { Button } from '../components/ui';
 import type { PlanId } from '../monetization/config';
 import { purchases, type Plan } from '../monetization/purchases';
@@ -59,7 +60,8 @@ export default function PaywallScreen() {
   if (state.premium) {
     return (
       <View style={[styles.screen, styles.center]} testID="paywall">
-        <Text style={styles.title}>You’re on Premium ✨</Text>
+        <Icon name="sparkles" size={44} color={colors.accent} />
+        <Text style={styles.title}>You’re on Premium</Text>
         <Button testID="paywall-close" label="Back to swiping" onPress={() => router.back()} />
       </View>
     );
@@ -69,8 +71,8 @@ export default function PaywallScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} testID="paywall">
       <Text style={styles.title}>Swipe Premium</Text>
       <View style={styles.perks}>
-        <Text style={styles.perk}>♾️ Unlimited swipes (free is {limits.dailySwipes} a day)</Text>
-        <Text style={styles.perk}>🚫 No ads in your feed</Text>
+        <Perk icon="infinity" text={`Unlimited swipes (free is ${limits.dailySwipes} a day)`} />
+        <Perk icon="ban" text="No ads in your feed" />
       </View>
 
       {plans == null ? (
@@ -127,13 +129,23 @@ export default function PaywallScreen() {
   );
 }
 
+function Perk({ icon, text }: { icon: IconName; text: string }) {
+  return (
+    <View style={styles.perkRow}>
+      <Icon name={icon} size={20} color={colors.accent} />
+      <Text style={styles.perk}>{text}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { alignItems: 'center', justifyContent: 'center', padding: space(6), gap: space(4) },
   content: { padding: space(6), paddingBottom: space(12) },
   title: { color: colors.text, fontSize: 28, fontWeight: '800', marginBottom: space(4) },
   perks: { gap: space(2), marginBottom: space(6) },
-  perk: { color: colors.textDim, fontSize: 16 },
+  perkRow: { flexDirection: 'row', alignItems: 'center', gap: space(3) },
+  perk: { color: colors.textDim, fontSize: 16, flexShrink: 1 },
   plan: {
     borderWidth: 2,
     borderColor: colors.border,
