@@ -12,7 +12,7 @@ export interface PolicySection {
 }
 
 /** Where people send privacy requests. Change it here and run `npm run privacy`. */
-export const PRIVACY_EMAIL = 'heystack.support@gmail.com';
+export const PRIVACY_EMAIL = 'haystack.support@gmail.com';
 export const POLICY_UPDATED = '6 November 2026';
 
 export const POLICY_TITLE = 'Haystack privacy policy';

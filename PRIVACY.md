@@ -42,7 +42,7 @@ Data on your device stays until you delete it. RevenueCat keeps purchase records
 
 ## Your choices and rights
 
-Under the PDPA you can ask to access or correct personal data we hold about you, or withdraw consent to its use. Because we don't hold accounts, most of your data is on your own phone, and you can view or delete it there. For purchase records, email heystack.support@gmail.com and we'll work with RevenueCat to handle it. To stop seeing ads, subscribe to Premium. You can also reset your device's advertising ID in your phone's settings.
+Under the PDPA you can ask to access or correct personal data we hold about you, or withdraw consent to its use. Because we don't hold accounts, most of your data is on your own phone, and you can view or delete it there. For purchase records, email haystack.support@gmail.com and we'll work with RevenueCat to handle it. To stop seeing ads, subscribe to Premium. You can also reset your device's advertising ID in your phone's settings.
 
 ## Children
 
@@ -62,4 +62,4 @@ If we change this policy, we'll update the date at the top and, for significant 
 
 ## Contact and Data Protection Officer
 
-Questions, requests or complaints about your data go to our Data Protection Officer at heystack.support@gmail.com.
+Questions, requests or complaints about your data go to our Data Protection Officer at haystack.support@gmail.com.
