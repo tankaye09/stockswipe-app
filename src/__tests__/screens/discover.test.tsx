@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import React from 'react';
 import { Linking, PanResponder, type PanResponderCallbacks, type PanResponderGestureState } from 'react-native';
@@ -9,18 +9,28 @@ import { NO_FILTERS } from '../../feed/feedEngine';
 import { isoDate } from '../../state/rules';
 import { persisted, renderWithState } from '../../test-utils';
 
+/** Icons are hidden from screen readers (the text beside them says the same), so tests opt in to find them. */
+const ICON = { includeHiddenElements: true };
+
 // The top card renders after the one behind it, so its symbol is the last match.
 const topSymbol = () => {
   const symbols = screen.getAllByTestId('card-symbol');
   return symbols[symbols.length - 1].props.children as string;
 };
 
+/** The icon on every stock card that says why it was shown. */
+const REASON = /^reason-(liked|news|wildcard)$/;
+
 const OLD_USER = { firstOpen: '2020-01-01' };
 
 async function openFeed(state = {}) {
   await renderWithState(<DiscoverScreen />, { interests: ['gaming', 'ai'], ...state });
   await screen.findByTestId('deck');
-  await screen.findAllByText(/^(❤️|📰|🎲) |swipes for today/);
+  await waitFor(() =>
+    expect(
+      screen.queryAllByTestId(REASON, ICON).length + screen.queryAllByText(/swipes for today/).length,
+    ).toBeGreaterThan(0),
+  );
 }
 
 const press = async (testID: string) => {
@@ -71,7 +81,7 @@ it('skips on a left swipe and counts it', async () => {
 
 it('Trade mode without a broker sends you to pick one', async () => {
   await openFeed({ swipeMode: 'trade' });
-  expect(screen.getByText('↗')).toBeOnTheScreen();
+  expect(within(screen.getByTestId('right-button')).getByTestId('icon-external', ICON)).toBeOnTheScreen();
   await press('right-button');
   expect(router.push).toHaveBeenCalledWith(expect.stringMatching(/^\/settings\?pickBroker=\d+$/));
 });
@@ -163,7 +173,7 @@ it('shows the filter count and an empty state that clears filters', async () => 
   expect(await screen.findByText('No stocks match your filters')).toBeOnTheScreen();
   expect(screen.getByText('Filters (4)')).toBeOnTheScreen();
   await fireEvent.press(screen.getByText('Clear filters'));
-  await screen.findAllByText(/^(❤️|📰|🎲) /);
+  await screen.findAllByTestId(REASON, ICON);
   expect(screen.getByText('Filters')).toBeOnTheScreen();
 });
 
@@ -176,7 +186,7 @@ it('opens filters', async () => {
 it('keeps refilling the deck as you swipe', async () => {
   await openFeed();
   for (let i = 0; i < 25; i++) await press('skip-button');
-  expect(screen.getAllByText(/^(❤️|📰|🎲) /).length).toBeGreaterThan(0);
+  expect(screen.getAllByTestId(REASON, ICON).length).toBeGreaterThan(0);
 });
 
 describe('card gestures', () => {

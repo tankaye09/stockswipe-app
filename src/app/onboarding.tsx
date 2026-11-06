@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Chip, Row, SectionTitle } from '../components/ui';
 import type { Market, Theme } from '../data/types';
-import { ALL_THEMES, THEME_EMOJI, THEME_LABELS } from '../feed/themes';
+import { ALL_THEMES, THEME_ICON, THEME_LABELS } from '../feed/themes';
 import { useAppState } from '../state/store';
 import { colors, space } from '../theme';
 
@@ -36,7 +36,8 @@ export default function Onboarding() {
             <Chip
               key={t}
               testID={`interest-${t}`}
-              label={`${THEME_EMOJI[t]} ${THEME_LABELS[t]}`}
+              label={THEME_LABELS[t]}
+              icon={THEME_ICON[t]}
               selected={interests.includes(t)}
               onPress={() => setInterests((l) => toggle(l, t))}
             />
@@ -47,13 +48,13 @@ export default function Onboarding() {
         <Row>
           <Chip
             testID="market-US"
-            label="🇺🇸 US stocks"
+            label="US stocks"
             selected={markets.includes('US')}
             onPress={() => setMarkets((l) => toggle(l, 'US'))}
           />
           <Chip
             testID="market-SGX"
-            label="🇸🇬 Singapore (SGX)"
+            label="Singapore (SGX)"
             selected={markets.includes('SGX')}
             onPress={() => setMarkets((l) => toggle(l, 'SGX'))}
           />

@@ -26,7 +26,7 @@ describe('Paywall', () => {
     await renderWithState(<PaywallScreen />);
     expect(await screen.findByTestId('plan-annual')).toBeSelected();
     expect(screen.getByText('S$5.98 / month')).toBeOnTheScreen();
-    expect(screen.getByText(`♾️ Unlimited swipes (free is ${DEFAULT_LIMITS.dailySwipes} a day)`)).toBeOnTheScreen();
+    expect(screen.getByText(`Unlimited swipes (free is ${DEFAULT_LIMITS.dailySwipes} a day)`)).toBeOnTheScreen();
     expect(screen.getByTestId('paywall-test-mode')).toBeOnTheScreen();
     await user().press(screen.getByTestId('plan-monthly'));
     expect(screen.getByTestId('plan-monthly')).toBeSelected();
@@ -80,7 +80,7 @@ describe('Paywall', () => {
 
   it('tells Premium users they already have it', async () => {
     await renderWithState(<PaywallScreen />, { premium: true });
-    expect(screen.getByText('You’re on Premium ✨')).toBeOnTheScreen();
+    expect(screen.getByText('You’re on Premium')).toBeOnTheScreen();
     await user().press(screen.getByTestId('paywall-close'));
     expect(router.back).toHaveBeenCalled();
   });

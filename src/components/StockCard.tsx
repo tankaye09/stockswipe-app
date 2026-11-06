@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { FeedItem } from '../feed/feedEngine';
 import { changeColor, colors, fmtBig, fmtPct, fmtPrice, radius, space } from '../theme';
+import { Icon, type IconName } from './Icon';
 import { PriceChart } from './PriceChart';
 import { useHistory } from './useHistory';
 
-const BUCKET_ICON = { liked: '❤️', news: '📰', wildcard: '🎲' } as const;
+/** Why the card was shown: a stock like ones you saved, in the news, or a wildcard. */
+const BUCKET_ICON: Record<FeedItem['bucket'], IconName> = { liked: 'heart', news: 'newspaper', wildcard: 'dice' };
 
 export function StockCard({ item }: { item: FeedItem }) {
   const { stock: s } = item;
@@ -15,8 +17,9 @@ export function StockCard({ item }: { item: FeedItem }) {
   return (
     <View style={styles.card}>
       <View style={styles.reason}>
+        <Icon name={BUCKET_ICON[item.bucket]} size={14} color={colors.textDim} testID={`reason-${item.bucket}`} />
         <Text style={styles.reasonText} numberOfLines={2}>
-          {BUCKET_ICON[item.bucket]} {item.reason}
+          {item.reason}
         </Text>
       </View>
 
@@ -92,8 +95,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: space(3),
     paddingVertical: space(1.5),
     marginBottom: space(4),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(1.5),
   },
-  reasonText: { color: colors.textDim, fontSize: 13 },
+  reasonText: { color: colors.textDim, fontSize: 13, flexShrink: 1 },
   header: { flexDirection: 'row', alignItems: 'flex-start' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space(2) },
   symbol: { color: colors.text, fontSize: 28, fontWeight: '800' },

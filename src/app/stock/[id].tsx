@@ -51,7 +51,9 @@ export default function StockScreen() {
       <Row style={{ marginTop: space(5) }}>
         <Button
           testID="toggle-save"
-          label={saved ? '★ Saved' : '☆ Save'}
+          label={saved ? 'Saved' : 'Save'}
+          icon="star"
+          iconFilled={saved}
           kind="secondary"
           onPress={() => dispatch({ type: saved ? 'unsave' : 'save', id })}
           style={{ flex: 1 }}

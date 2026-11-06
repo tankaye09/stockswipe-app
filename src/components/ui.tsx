@@ -2,17 +2,21 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { colors, radius, space } from '../theme';
+import { Icon, type IconName } from './Icon';
 
 export function Chip({
   label,
   selected,
   onPress,
   testID,
+  icon,
 }: {
   label: string;
   selected: boolean;
   onPress: () => void;
   testID?: string;
+  /** Shown before the label, in the label's colour. */
+  icon?: IconName;
 }) {
   return (
     <Pressable
@@ -22,6 +26,7 @@ export function Chip({
       onPress={onPress}
       style={[styles.chip, selected && styles.chipOn]}
     >
+      {icon && <Icon name={icon} size={16} color={selected ? '#fff' : colors.textDim} />}
       <Text style={[styles.chipText, selected && styles.chipTextOn]}>{label}</Text>
     </Pressable>
   );
@@ -34,6 +39,8 @@ export function Button({
   disabled,
   testID,
   style,
+  icon,
+  iconFilled,
 }: {
   label: string;
   onPress: () => void;
@@ -41,7 +48,11 @@ export function Button({
   disabled?: boolean;
   testID?: string;
   style?: ViewStyle;
+  /** Shown before the label, in the label's colour. */
+  icon?: IconName;
+  iconFilled?: boolean;
 }) {
+  const textColor = kind === 'secondary' ? colors.text : '#fff';
   return (
     <Pressable
       testID={testID}
@@ -51,7 +62,8 @@ export function Button({
       onPress={onPress}
       style={[styles.button, styles[kind], disabled && styles.disabled, style]}
     >
-      <Text style={[styles.buttonText, kind === 'secondary' && { color: colors.text }]}>{label}</Text>
+      {icon && <Icon name={icon} size={18} color={textColor} filled={iconFilled} />}
+      <Text style={[styles.buttonText, { color: textColor }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -76,16 +88,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: space(3.5),
     paddingVertical: space(2),
     backgroundColor: colors.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(1.5),
   },
   chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   chipText: { color: colors.textDim, fontSize: 14, fontWeight: '600' },
   chipTextOn: { color: '#fff' },
-  button: { borderRadius: radius.md, paddingVertical: space(3.5), alignItems: 'center', paddingHorizontal: space(4) },
+  button: {
+    borderRadius: radius.md,
+    paddingVertical: space(3.5),
+    paddingHorizontal: space(4),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space(2),
+  },
   primary: { backgroundColor: colors.accent },
   secondary: { backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border },
   danger: { backgroundColor: colors.down },
   disabled: { opacity: 0.4 },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  buttonText: { fontWeight: '700', fontSize: 16 },
   section: {
     color: colors.textFaint,
     fontSize: 12,

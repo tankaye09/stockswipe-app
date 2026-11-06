@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, space } from '../theme';
 import { loadAdMob, type AdMobSdk } from '../monetization/ads';
 import { ADS } from '../monetization/config';
+import { Icon, type IconName } from './Icon';
 
 /**
  * The ad card free users see every few swipes. Shows an AdMob ad when ads are
@@ -33,7 +34,7 @@ export function AdCard({
         />
       ) : (
         <>
-          <Text style={styles.emoji}>✨</Text>
+          <CardIcon name="sparkles" />
           <Text style={styles.title}>Swipe with no ads</Text>
           <Text style={styles.body}>Premium gives you unlimited swipes and no ads.</Text>
         </>
@@ -49,7 +50,7 @@ export function AdCard({
 export function LimitCard({ dailySwipes, onUpgrade }: { dailySwipes: number; onUpgrade: () => void }) {
   return (
     <View style={styles.card}>
-      <Text style={styles.emoji}>⏸️</Text>
+      <CardIcon name="hourglass" />
       <Text style={styles.title}>That’s your {dailySwipes} swipes for today</Text>
       <Text style={styles.body}>
         Come back tomorrow for a fresh batch, or go Premium for unlimited swipes. Your watchlist and paper portfolio are
@@ -65,12 +66,21 @@ export function LimitCard({ dailySwipes, onUpgrade }: { dailySwipes: number; onU
 export function EmptyCard({ onReset }: { onReset: () => void }) {
   return (
     <View style={styles.card}>
-      <Text style={styles.emoji}>🔍</Text>
+      <CardIcon name="noResults" />
       <Text style={styles.title}>No stocks match your filters</Text>
       <Text style={styles.body}>Try clearing a filter or adding another market.</Text>
       <Pressable style={styles.button} onPress={onReset}>
         <Text style={styles.buttonText}>Clear filters</Text>
       </Pressable>
+    </View>
+  );
+}
+
+/** The large icon at the top of a non-stock card. */
+function CardIcon({ name }: { name: IconName }) {
+  return (
+    <View style={styles.icon}>
+      <Icon name={name} size={44} color={colors.accent} />
     </View>
   );
 }
@@ -87,7 +97,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tag: { color: colors.sponsored, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginBottom: space(3) },
-  emoji: { fontSize: 44, marginBottom: space(3) },
+  icon: { marginBottom: space(3) },
   title: { color: colors.text, fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: space(3) },
   body: { color: colors.textDim, fontSize: 15, lineHeight: 22, textAlign: 'center' },
   hint: { color: colors.textFaint, fontSize: 13, marginTop: space(6) },
