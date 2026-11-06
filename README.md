@@ -167,6 +167,6 @@ times Linux minutes). The workflows only run when they need to:
 - Generate the AI breakdowns from real filings and news (the sample text is hand-written).
 - Fintech lawyer review (MAS) of the wording, paper trading and broker hand-off.
 - App name, icon and store listings.
-- Privacy policy: fill in the operator name and contact email in `src/legal/privacyPolicy.ts`, run `npm run privacy`
+- Privacy policy: update the operator (a company once there is one) and contact email in `src/legal/privacyPolicy.ts`, run `npm run privacy`
   to regenerate `PRIVACY.md`, and link its public URL in both store listings. The app shows the same text under
   Settings > Privacy policy and links it from onboarding.
