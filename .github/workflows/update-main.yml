@@ -1,0 +1,79 @@
+name: Update main
+
+# Publishes main's JS as an EAS Update on the "main" branch after every merge, so the latest app
+# (with live stock data) is always one tap away on your phone, with no computer running Expo.
+# Open it from the Swipe development build: scan the QR code in this run's summary, or in the
+# app's launcher go to Extensions, sign in to Expo and pick the "main" branch. Skips until the
+# EXPO_TOKEN secret exists. Native changes still need a new development build (dev-build.yml).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+concurrency:
+  group: update-main
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Internal builds only, never the stores: admin page on, and live stock data when the
+  # Supabase secrets exist (the anon key is read-only; see supabase/README.md).
+  EXPO_PUBLIC_ADMIN_TOOLS: '1'
+  EXPO_PUBLIC_DATA_SOURCE: live
+  EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+jobs:
+  update:
+    name: Publish main as an update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Expo is set up
+        id: ready
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "No EXPO_TOKEN secret yet, so no update."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v7
+        if: steps.ready.outputs.ok == 'true'
+      - uses: actions/setup-node@v7
+        if: steps.ready.outputs.ok == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - uses: expo/expo-github-action@v8
+        if: steps.ready.outputs.ok == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+        if: steps.ready.outputs.ok == 'true'
+      - name: Publish and add a QR code to the summary
+        if: steps.ready.outputs.ok == 'true'
+        run: |
+          set -o pipefail
+          # Android only, like preview.yml: that's the phone with a development build.
+          eas update --branch main --platform android --message "main ${GITHUB_SHA::7}" --non-interactive --json \
+            | tee update.json
+          group=$(jq -r '.[0].group' update.json)
+          project=$(jq -r '.expo.extra.eas.projectId' app.json)
+          qr="https://qr.expo.dev/eas-update?appScheme=stockswipe-app&projectId=${project}&groupId=${group}"
+          {
+            echo "### main is on your phone"
+            echo "Scan with the phone camera (Swipe development build installed):"
+            echo ""
+            echo "<img src=\"${qr}\" width=\"250\" />"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -20,8 +20,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Preview updates are for us, never the stores, so the admin page is on.
+  # Preview updates are for us, never the stores, so the admin page is on, and they show live
+  # stock data when the Supabase secrets exist (the anon key is read-only; see supabase/README.md).
   EXPO_PUBLIC_ADMIN_TOOLS: '1'
+  EXPO_PUBLIC_DATA_SOURCE: live
+  EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
 jobs:
   update:

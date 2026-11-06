@@ -59,6 +59,8 @@ Native builds and e2e flows run in CI; this container can't run simulators.
 - Phone previews: `preview.yml` publishes each PR as an EAS Update and comments a QR code to open it in the Swipe
   development build (`eas.json` profile `development`, built on demand by `dev-build.yml`). It skips until the
   `EXPO_TOKEN` secret and the Expo project ID in `app.json` exist. Native changes need a new development build.
+  `update-main.yml` does the same for `main` after each merge (EAS branch `main`). Both use live stock data when the
+  `SUPABASE_URL` and `SUPABASE_ANON_KEY` secrets exist.
   `updates.checkAutomatically` is `ON_ERROR_RECOVERY` so release and e2e builds never fetch updates on launch;
   revisit before shipping OTA updates to the stores.
 - The e2e workflows set `EXPO_PUBLIC_UNDO_MS=20000` so slow emulators can tap Undo, and (with #7)
