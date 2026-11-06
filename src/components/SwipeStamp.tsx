@@ -1,12 +1,18 @@
 // The hay and needle graphics, used on the swipe stamps and on the buttons
-// under the deck. Skipping a card is hay: one loose, dull straw. Keeping
+// under the deck. Skipping a card is hay: a dull wheat stalk. Keeping
 // it is the needle: golden, with a sparkle. Drawn with react-native-svg so
 // they look the same on iOS and Android.
 import React from 'react';
-import Svg, { Defs, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, Ellipse, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 const STRAW = '#9A8B66';
-const STRAW_NODE = '#75694C';
+const STRAW_DARK = '#7A6E50';
+
+/** Grains on the wheat head, from the bottom up, as [x, y, tilt]: pairs leaning out either side. */
+const GRAINS: [number, number, number][] = [44, 37, 30, 23, 16].flatMap((y): [number, number, number][] => [
+  [45.8, y, -28],
+  [54.2, y + 2, 28],
+]);
 
 /** A four-pointed sparkle centred on (x, y). */
 const sparkle = (x: number, y: number, r: number) => {
@@ -17,14 +23,32 @@ const sparkle = (x: number, y: number, r: number) => {
   );
 };
 
-/** The hay: a single loose, dull straw with a frayed tip, leaning the other way to the needle. */
+/** The hay: a wheat stalk, the kind you chew on, in dull straw colours. Leans the other way to the needle. */
 export function Hay({ size }: { size: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100">
-      <G transform="rotate(-20 50 50)" fill="none" strokeLinecap="round">
-        <Path d="M50 90 Q47 60 50 28" stroke={STRAW} strokeWidth={6.5} />
-        <Path d="M50 28 L46 14 M50 28 L51 11 M50 28 L55 15" stroke={STRAW} strokeWidth={2.6} />
-        <Path d="M45 58 H52.5" stroke={STRAW_NODE} strokeWidth={3} />
+      <G transform="translate(4 4) rotate(-20 50 50)" fill="none" strokeLinecap="round">
+        <Path d="M50 94 Q48 72 50 46" stroke={STRAW_DARK} strokeWidth={3.2} />
+        {GRAINS.map(([x, y, tilt]) => {
+          const out = Math.sign(tilt);
+          return (
+            <G key={`${x}-${y}`}>
+              <Path d={`M${x + out * 2} ${y - 4} L${x + out * 9} ${y - 14}`} stroke={STRAW_DARK} strokeWidth={1.1} />
+              <Ellipse
+                cx={x}
+                cy={y}
+                rx={3.4}
+                ry={6}
+                transform={`rotate(${tilt} ${x} ${y})`}
+                fill={STRAW}
+                stroke={STRAW_DARK}
+                strokeWidth={0.8}
+              />
+            </G>
+          );
+        })}
+        <Path d="M50 5 V-4" stroke={STRAW_DARK} strokeWidth={1.1} />
+        <Ellipse cx={50} cy={10} rx={3} ry={5.5} fill={STRAW} stroke={STRAW_DARK} strokeWidth={0.8} />
       </G>
     </Svg>
   );
