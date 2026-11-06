@@ -16,12 +16,14 @@ interface Props<T> {
   render: (item: T) => React.ReactNode;
   onSwipe: (item: T, dir: SwipeDir) => void;
   onTap?: (item: T) => void;
-  /** Label shown when dragging right, e.g. "SAVE" or "TRADE". */
-  rightLabel: string;
+  /** Colour of the NEEDLE stamp, so it matches the Save or Trade mode. */
   rightColor: string;
   /** Some cards (ads, limits) can disable swiping. */
   canSwipe?: (item: T) => boolean;
 }
+
+/** Stamps shown while dragging: a skipped card is hay, a kept one is a needle. */
+export const STAMPS = { left: 'HAY', right: 'NEEDLE' } as const;
 
 const SCREEN_W = Dimensions.get('window').width;
 const THRESHOLD = SCREEN_W * 0.28;
@@ -78,7 +80,7 @@ function createGestures<T>(initialProps: Props<T>) {
 }
 
 function SwipeDeckInner<T>(props: Props<T>, ref: React.Ref<SwipeDeckHandle>) {
-  const { items, keyOf, render, rightLabel, rightColor } = props;
+  const { items, keyOf, render, rightColor } = props;
   // Gestures are created once and kept in sync with the latest props.
   const [gestures] = useState(() => createGestures(props));
   const { pos, fling, responder } = gestures;
@@ -119,10 +121,10 @@ function SwipeDeckInner<T>(props: Props<T>, ref: React.Ref<SwipeDeckHandle>) {
       >
         {render(top)}
         <Animated.View style={[styles.stamp, styles.stampRight, { borderColor: rightColor, opacity: rightOpacity }]}>
-          <Text style={[styles.stampText, { color: rightColor }]}>{rightLabel}</Text>
+          <Text style={[styles.stampText, { color: rightColor }]}>{STAMPS.right}</Text>
         </Animated.View>
         <Animated.View style={[styles.stamp, styles.stampLeft, { borderColor: colors.skip, opacity: leftOpacity }]}>
-          <Text style={[styles.stampText, { color: colors.skip }]}>SKIP</Text>
+          <Text style={[styles.stampText, { color: colors.skip }]}>{STAMPS.left}</Text>
         </Animated.View>
       </Animated.View>
     </View>

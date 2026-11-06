@@ -34,7 +34,6 @@ async function setup(items: Card[] = [{ id: 'a' }, { id: 'b' }]) {
       render={(c) => <Text>card {c.id}</Text>}
       onSwipe={onSwipe}
       onTap={onTap}
-      rightLabel="SAVE"
       rightColor="green"
       canSwipe={(c) => !c.locked}
     />,
@@ -48,8 +47,8 @@ it('shows the top card and the next one behind it', async () => {
   await setup();
   expect(screen.getByText('card a')).toBeOnTheScreen();
   expect(screen.getByText('card b')).toBeOnTheScreen();
-  expect(screen.getByText('SAVE')).toBeOnTheScreen();
-  expect(screen.getByText('SKIP')).toBeOnTheScreen();
+  expect(screen.getByText('NEEDLE')).toBeOnTheScreen();
+  expect(screen.getByText('HAY')).toBeOnTheScreen();
 });
 
 it('renders nothing when empty', async () => {

@@ -143,7 +143,6 @@ function Feed({ universe }: { universe: StockSummary[] }) {
           render={renderCard}
           onSwipe={onSwipe}
           onTap={(c) => c.kind === 'stock' && router.push(`/stock/${encodeURIComponent(c.item.id)}`)}
-          rightLabel={tradeMode ? 'TRADE' : 'SAVE'}
           rightColor={tradeMode ? colors.trade : colors.save}
           canSwipe={(c) => c.kind === 'stock' || c.kind === 'ad'}
         />
