@@ -54,7 +54,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@v9
         if: steps.ready.outputs.ok == 'true'
         with:
           eas-version: latest
