@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@v9
         if: steps.ready.outputs.ok == 'true'
         with:
           eas-version: latest
@@ -61,7 +61,7 @@ jobs:
         if: steps.ready.outputs.ok == 'true'
       - name: Publish and comment a QR code
         if: steps.ready.outputs.ok == 'true'
-        uses: expo/expo-github-action/preview@v8
+        uses: expo/expo-github-action/preview@v9
         with:
           # Android only for now: that's the phone with a development build. eas-cli can't find the
           # nested @expo/cli here, so without a platform it also bundles web, which this app doesn't
